@@ -1,2 +1,6 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+APPLE_DEVELOPMENT_TEAM = B876W8C9F4
+IOS_CODE_SIGN_STYLE = Automatic
+IOS_PROVISIONING_PROFILE_NAME =
+#include? "Release-secrets.xcconfig"

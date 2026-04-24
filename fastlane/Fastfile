@@ -1,0 +1,55 @@
+default_platform(:ios)
+
+platform :android do
+  desc "Upload the generated Android app bundle to Google Play"
+  lane :upload_to_play do
+    upload_to_play_store(
+      package_name: ENV.fetch("ANDROID_PACKAGE_NAME", "com.vinhala.carbook"),
+      json_key_data: ENV.fetch("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"),
+      track: ENV.fetch("PLAY_TRACK"),
+      aab: ENV.fetch("ANDROID_AAB_PATH"),
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+end
+
+platform :ios do
+  desc "Upload the generated IPA to App Store Connect"
+  lane :upload_to_store do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APPSTORE_CONNECT_KEY_ID"),
+      issuer_id: ENV.fetch("APPSTORE_CONNECT_ISSUER_ID"),
+      key_content: ENV.fetch("APPSTORE_CONNECT_PRIVATE_KEY"),
+      is_key_content_base64: false
+    )
+
+    release_channel = ENV.fetch("RELEASE_CHANNEL")
+    ipa_path = ENV.fetch("IOS_IPA_PATH")
+    bundle_id = ENV.fetch("IOS_BUNDLE_ID", "com.vinhala.carbook")
+
+    if release_channel == "production"
+      deliver(
+        api_key: api_key,
+        app_identifier: bundle_id,
+        ipa: ipa_path,
+        force: true,
+        submit_for_review: true,
+        automatic_release: false,
+        run_precheck_before_submit: false,
+        skip_metadata: true,
+        skip_screenshots: true
+      )
+    else
+      upload_to_testflight(
+        api_key: api_key,
+        app_identifier: bundle_id,
+        ipa: ipa_path,
+        skip_waiting_for_build_processing: true,
+        distribute_external: false
+      )
+    end
+  end
+end

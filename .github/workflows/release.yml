@@ -1,0 +1,287 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+      - "preview*"
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.context.outputs.build_number }}
+      environment_name: ${{ steps.context.outputs.environment_name }}
+      play_track: ${{ steps.context.outputs.play_track }}
+      release_channel: ${{ steps.context.outputs.release_channel }}
+      version: ${{ steps.context.outputs.version }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Parse tag and validate version
+        id: context
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          if [[ "$tag" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            release_channel="production"
+            environment_name="production"
+            play_track="production"
+            version="${BASH_REMATCH[1]}"
+          elif [[ "$tag" =~ ^preview-?([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            release_channel="preview"
+            environment_name="preview"
+            play_track="internal"
+            version="${BASH_REMATCH[1]}"
+          else
+            echo "::error title=Unsupported tag::Use vX.Y.Z, previewX.Y.Z, or preview-X.Y.Z tags."
+            exit 1
+          fi
+
+          pubspec_version="$(awk -F': ' '/^version: / { print $2; exit }' pubspec.yaml)"
+          marketing_version="${pubspec_version%%+*}"
+          if [[ "$marketing_version" != "$version" ]]; then
+            echo "::error title=Version mismatch::Tag $tag resolves to $version but pubspec.yaml declares $marketing_version."
+            exit 1
+          fi
+
+          {
+            echo "build_number=${GITHUB_RUN_NUMBER}"
+            echo "environment_name=${environment_name}"
+            echo "play_track=${play_track}"
+            echo "release_channel=${release_channel}"
+            echo "version=${version}"
+          } >> "$GITHUB_OUTPUT"
+
+  android:
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.environment_name }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.7"
+          cache: true
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Validate Android secrets
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          for secret_name in \
+            ANDROID_KEYSTORE_BASE64 \
+            ANDROID_KEYSTORE_PASSWORD \
+            ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD \
+            GOOGLE_PLAY_SERVICE_ACCOUNT_JSON; do
+            if [[ -z "${!secret_name:-}" ]]; then
+              echo "::error title=Missing secret::${secret_name} is required for Android releases."
+              exit 1
+            fi
+          done
+
+      - name: Create Android keystore
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          keystore_path="$RUNNER_TEMP/upload-keystore.jks"
+          printf "%s" "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          echo "ANDROID_STORE_FILE=$keystore_path" >> "$GITHUB_ENV"
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Android app bundle
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: >
+          flutter build appbundle
+          --release
+          --build-name "${{ needs.prepare.outputs.version }}"
+          --build-number "${{ needs.prepare.outputs.build_number }}"
+
+      - name: Upload Android bundle to Google Play
+        env:
+          ANDROID_AAB_PATH: ${{ github.workspace }}/build/app/outputs/bundle/release/app-release.aab
+          ANDROID_PACKAGE_NAME: com.vinhala.carbook
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_TRACK: ${{ needs.prepare.outputs.play_track }}
+        run: bundle exec fastlane android upload_to_play
+
+  ios:
+    needs: prepare
+    runs-on: macos-latest
+    environment: ${{ needs.prepare.outputs.environment_name }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.7"
+          cache: true
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Validate iOS secrets
+        shell: bash
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
+          APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
+          APPSTORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY }}
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+        run: |
+          set -euo pipefail
+          for secret_name in \
+            APPLE_TEAM_ID \
+            APPSTORE_CONNECT_ISSUER_ID \
+            APPSTORE_CONNECT_KEY_ID \
+            APPSTORE_CONNECT_PRIVATE_KEY \
+            IOS_DIST_CERT_P12_BASE64 \
+            IOS_DIST_CERT_PASSWORD \
+            IOS_PROVISIONING_PROFILE_BASE64 \
+            IOS_PROVISIONING_PROFILE_NAME; do
+            if [[ -z "${!secret_name:-}" ]]; then
+              echo "::error title=Missing secret::${secret_name} is required for iOS releases."
+              exit 1
+            fi
+          done
+
+      - name: Install iOS signing assets
+        shell: bash
+        env:
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+
+          cert_path="$RUNNER_TEMP/distribution-cert.p12"
+          keychain_path="$RUNNER_TEMP/app-signing.keychain-db"
+          keychain_password="$(uuidgen)"
+          profile_path="$RUNNER_TEMP/profile.mobileprovision"
+          profile_plist="$RUNNER_TEMP/profile.plist"
+          profiles_dir="$HOME/Library/MobileDevice/Provisioning Profiles"
+
+          mkdir -p "$profiles_dir"
+          printf "%s" "$IOS_DIST_CERT_P12_BASE64" | base64 -D > "$cert_path"
+          printf "%s" "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -D > "$profile_path"
+
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$cert_path" -P "$IOS_DIST_CERT_PASSWORD" -f pkcs12 -k "$keychain_path"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain_path"
+          security list-keychains -d user -s "$keychain_path" $(security list-keychains -d user | tr -d '"')
+
+          security cms -D -i "$profile_path" > "$profile_plist"
+          profile_uuid=$(/usr/libexec/PlistBuddy -c "Print UUID" "$profile_plist")
+          cp "$profile_path" "$profiles_dir/$profile_uuid.mobileprovision"
+
+      - name: Configure iOS release signing
+        shell: bash
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+        run: |
+          set -euo pipefail
+
+          cat <<EOF > ios/Flutter/Release-secrets.xcconfig
+          APPLE_DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
+          IOS_CODE_SIGN_STYLE = Manual
+          IOS_PROVISIONING_PROFILE_NAME = ${IOS_PROVISIONING_PROFILE_NAME}
+          EOF
+
+          cat <<EOF > "$RUNNER_TEMP/ExportOptions.plist"
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>destination</key>
+            <string>export</string>
+            <key>method</key>
+            <string>app-store</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.vinhala.carbook</key>
+              <string>${IOS_PROVISIONING_PROFILE_NAME}</string>
+            </dict>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build signed iOS IPA
+        run: >
+          flutter build ipa
+          --release
+          --build-name "${{ needs.prepare.outputs.version }}"
+          --build-number "${{ needs.prepare.outputs.build_number }}"
+          --export-options-plist "$RUNNER_TEMP/ExportOptions.plist"
+
+      - name: Locate IPA artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          ipa_path="$(find "$GITHUB_WORKSPACE/build/ios/ipa" -maxdepth 1 -name '*.ipa' -print -quit)"
+          if [[ -z "$ipa_path" ]]; then
+            echo "::error title=Missing IPA::No IPA was produced in build/ios/ipa."
+            exit 1
+          fi
+          echo "IOS_IPA_PATH=$ipa_path" >> "$GITHUB_ENV"
+
+      - name: Upload IPA to App Store Connect
+        env:
+          APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
+          APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
+          APPSTORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY }}
+          IOS_BUNDLE_ID: com.vinhala.carbook
+          RELEASE_CHANNEL: ${{ needs.prepare.outputs.release_channel }}
+        run: bundle exec fastlane ios upload_to_store
