@@ -196,6 +196,43 @@ class _CarProfileView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _DetailCard(
+              title: 'Maintenance schedule',
+              trailing: FilledButton.tonalIcon(
+                onPressed: () =>
+                    context.push('/cars/${profile.id}/maintenance'),
+                icon: const Icon(Icons.event_repeat_rounded),
+                label: const Text('Open'),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Track recurring maintenance, see what is overdue, and log completed service from one place.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.build_circle_outlined,
+                        color: AppTheme.tertiary,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Create mileage- or time-based items for this vehicle.',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _DetailCard(
               title: 'Workshop manuals',
               child: Text(
                 'Workshop manual upload and display are intentionally deferred to Epic 5.',

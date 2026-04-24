@@ -1,6 +1,12 @@
 DateTime beginningOfMonth(DateTime dateTime) =>
     DateTime(dateTime.year, dateTime.month);
 
+DateTime startOfDay(DateTime dateTime) =>
+    DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+int daysBetweenDates(DateTime start, DateTime end) =>
+    startOfDay(end).difference(startOfDay(start)).inDays;
+
 DateTime reminderAnchor(DateTime timestamp) =>
     DateTime(timestamp.year, timestamp.month, timestamp.day, 9);
 

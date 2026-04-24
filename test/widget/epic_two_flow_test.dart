@@ -11,12 +11,14 @@ import '../support/test_doubles.dart';
 void main() {
   late AppDatabase database;
   late DriftCarProfileRepository repository;
+  late DriftMaintenanceRepository maintenanceRepository;
   late FakeMediaService mediaService;
   late RecordingReminderScheduler reminderScheduler;
 
   setUp(() {
     database = AppDatabase.forTesting(NativeDatabase.memory());
     repository = DriftCarProfileRepository(database);
+    maintenanceRepository = DriftMaintenanceRepository(database);
     mediaService = FakeMediaService();
     reminderScheduler = RecordingReminderScheduler();
   });
@@ -30,6 +32,7 @@ void main() {
       buildTestApp(
         database: database,
         repository: repository,
+        maintenanceRepository: maintenanceRepository,
         mediaService: mediaService,
         reminderScheduler: reminderScheduler,
       ),
@@ -48,6 +51,7 @@ void main() {
       buildTestApp(
         database: database,
         repository: repository,
+        maintenanceRepository: maintenanceRepository,
         mediaService: mediaService,
         reminderScheduler: reminderScheduler,
       ),
@@ -107,6 +111,7 @@ void main() {
       buildTestApp(
         database: database,
         repository: repository,
+        maintenanceRepository: maintenanceRepository,
         mediaService: mediaService,
         reminderScheduler: reminderScheduler,
       ),
@@ -157,6 +162,7 @@ void main() {
       buildTestApp(
         database: database,
         repository: repository,
+        maintenanceRepository: maintenanceRepository,
         mediaService: mediaService,
         reminderScheduler: reminderScheduler,
       ),

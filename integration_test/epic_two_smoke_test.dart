@@ -4,6 +4,7 @@ import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:integration_test/integration_test.dart';
 
 import '../test/support/test_app.dart';
@@ -11,12 +12,14 @@ import '../test/support/test_doubles.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = true;
 
   testWidgets('smoke flow creates, updates, and reopens a profile', (
     tester,
   ) async {
     final database = AppDatabase.forTesting(NativeDatabase.memory());
     final repository = DriftCarProfileRepository(database);
+    final maintenanceRepository = DriftMaintenanceRepository(database);
     final mediaService = FakeMediaService();
     final reminderScheduler = RecordingReminderScheduler();
 
@@ -24,8 +27,10 @@ void main() {
       buildTestApp(
         database: database,
         repository: repository,
+        maintenanceRepository: maintenanceRepository,
         mediaService: mediaService,
         reminderScheduler: reminderScheduler,
+        allowRuntimeFontFetching: true,
       ),
     );
     await tester.pumpAndSettle();
@@ -51,6 +56,11 @@ void main() {
     await tester.tap(find.byIcon(Icons.edit_outlined));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).at(4), '66000');
+    await tester.scrollUntilVisible(
+      find.text('Save Changes'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('Save Changes'));
     await tester.pumpAndSettle();
 
@@ -77,8 +87,10 @@ void main() {
       buildTestApp(
         database: database,
         repository: repository,
+        maintenanceRepository: maintenanceRepository,
         mediaService: mediaService,
         reminderScheduler: reminderScheduler,
+        allowRuntimeFontFetching: true,
       ),
     );
     await tester.pumpAndSettle();
