@@ -50,7 +50,6 @@ As a user I want to be able to see the profile for one of my cars so that I can 
 1. User selects a car profile
 2. App displays make, model, engine, year, vin as well as a picture if provided
 3. App displays mileage along with date of last edited and a control to update the mileage
-4. App displays stored workshop manual or control to add one
 
 ### US.2.4 Edit Car Profile
 As a user I want to be able to edit the profile for one of my cars so that I can update wrong or outdated information.
