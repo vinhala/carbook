@@ -15,6 +15,19 @@ import 'package:carbook/src/domain/maintenance_schedule_entry.dart';
 import 'package:carbook/src/domain/maintenance_schedule_type.dart';
 import 'package:carbook/src/domain/maintenance_time_unit.dart';
 import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
+import 'package:carbook/src/domain/repair_area.dart';
+import 'package:carbook/src/domain/repair_attachment.dart';
+import 'package:carbook/src/domain/repair_attachment_input.dart';
+import 'package:carbook/src/domain/repair_attachment_kind.dart';
+import 'package:carbook/src/domain/repair_entry.dart';
+import 'package:carbook/src/domain/repair_entry_details.dart';
+import 'package:carbook/src/domain/repair_entry_input.dart';
+import 'package:carbook/src/domain/repair_overview.dart';
+import 'package:carbook/src/domain/repair_part.dart';
+import 'package:carbook/src/domain/repair_part_input.dart';
+import 'package:carbook/src/domain/repair_repository.dart';
+import 'package:carbook/src/domain/repair_status.dart';
+import 'package:carbook/src/domain/repair_urgency.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,6 +74,54 @@ class NullableMaintenanceTimeUnitConverter
 
   @override
   String? toSql(MaintenanceTimeUnit? value) => value?.storageValue;
+}
+
+class RepairStatusConverter extends TypeConverter<RepairStatus, String> {
+  const RepairStatusConverter();
+
+  @override
+  RepairStatus fromSql(String fromDb) => RepairStatus.fromStorage(fromDb);
+
+  @override
+  String toSql(RepairStatus value) => value.storageValue;
+}
+
+class RepairAreaConverter extends TypeConverter<RepairArea, String> {
+  const RepairAreaConverter();
+
+  @override
+  RepairArea fromSql(String fromDb) => RepairArea.fromStorage(fromDb);
+
+  @override
+  String toSql(RepairArea value) => value.storageValue;
+}
+
+class NullableRepairUrgencyConverter
+    extends TypeConverter<RepairUrgency?, String?> {
+  const NullableRepairUrgencyConverter();
+
+  @override
+  RepairUrgency? fromSql(String? fromDb) {
+    if (fromDb == null) {
+      return null;
+    }
+    return RepairUrgency.fromStorage(fromDb);
+  }
+
+  @override
+  String? toSql(RepairUrgency? value) => value?.storageValue;
+}
+
+class RepairAttachmentKindConverter
+    extends TypeConverter<RepairAttachmentKind, String> {
+  const RepairAttachmentKindConverter();
+
+  @override
+  RepairAttachmentKind fromSql(String fromDb) =>
+      RepairAttachmentKind.fromStorage(fromDb);
+
+  @override
+  String toSql(RepairAttachmentKind value) => value.storageValue;
 }
 
 @DataClassName('CarProfileRecord')
@@ -110,14 +171,62 @@ class MaintenanceLogs extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
-@DriftDatabase(tables: [CarProfiles, MaintenanceItems, MaintenanceLogs])
+@DataClassName('RepairEntryRecord')
+class RepairEntries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get carProfileId =>
+      integer().references(CarProfiles, #id, onDelete: KeyAction.cascade)();
+  TextColumn get status => text().map(const RepairStatusConverter())();
+  BoolColumn get isModification => boolean()();
+  TextColumn get area => text().map(const RepairAreaConverter())();
+  TextColumn get urgency =>
+      text().nullable().map(const NullableRepairUrgencyConverter())();
+  TextColumn get title => text()();
+  TextColumn get description => text().nullable()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+}
+
+@DataClassName('RepairPartRecord')
+class RepairParts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get repairEntryId =>
+      integer().references(RepairEntries, #id, onDelete: KeyAction.cascade)();
+  TextColumn get title => text()();
+  TextColumn get link => text().nullable()();
+}
+
+@DataClassName('RepairAttachmentRecord')
+class RepairAttachments extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get repairEntryId =>
+      integer().references(RepairEntries, #id, onDelete: KeyAction.cascade)();
+  TextColumn get kind => text().map(const RepairAttachmentKindConverter())();
+  TextColumn get storedPath => text()();
+  TextColumn get originalName => text()();
+  TextColumn get mimeType => text().nullable()();
+  TextColumn get fileExtension => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+@DriftDatabase(
+  tables: [
+    CarProfiles,
+    MaintenanceItems,
+    MaintenanceLogs,
+    RepairEntries,
+    RepairParts,
+    RepairAttachments,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -128,6 +237,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await migrator.createTable(maintenanceItems);
         await migrator.createTable(maintenanceLogs);
+      }
+      if (from < 3) {
+        await migrator.createTable(repairEntries);
+        await migrator.createTable(repairParts);
+        await migrator.createTable(repairAttachments);
       }
     },
   );
@@ -155,6 +269,12 @@ final carProfileRepositoryProvider = Provider<CarProfileRepository>(
 final maintenanceRepositoryProvider = Provider<MaintenanceRepository>(
   (ref) => throw UnimplementedError(
     'MaintenanceRepository must be overridden at startup.',
+  ),
+);
+
+final repairRepositoryProvider = Provider<RepairRepository>(
+  (ref) => throw UnimplementedError(
+    'RepairRepository must be overridden at startup.',
   ),
 );
 
@@ -517,5 +637,356 @@ class DriftMaintenanceRepository implements MaintenanceRepository {
     }
 
     return left.item.description.compareTo(right.item.description);
+  }
+}
+
+class DriftRepairRepository implements RepairRepository {
+  DriftRepairRepository(this._database);
+
+  final AppDatabase _database;
+
+  @override
+  Stream<RepairOverview> watchOverview(
+    int carProfileId, {
+    required bool modifications,
+  }) {
+    final query = _database.select(_database.repairEntries)
+      ..where((table) => table.carProfileId.equals(carProfileId))
+      ..where((table) => table.isModification.equals(modifications));
+
+    return query.watch().map((rows) {
+      final entries = rows.map(_mapRepairEntry).toList();
+      final planned = entries.where((entry) => entry.isPlanned).toList()
+        ..sort(_comparePlannedEntries);
+      final past = entries.where((entry) => entry.isCompleted).toList()
+        ..sort(_comparePastEntries);
+      return RepairOverview(planned: planned, past: past);
+    });
+  }
+
+  @override
+  Stream<RepairEntryDetails?> watchRepairEntry(int entryId) {
+    final query = _database.select(_database.repairEntries)
+      ..where((table) => table.id.equals(entryId));
+
+    return query.watch().asyncMap((rows) async {
+      if (rows.isEmpty) {
+        return null;
+      }
+
+      final record = rows.single;
+      return RepairEntryDetails(
+        entry: _mapRepairEntry(record),
+        parts: await _fetchPartsForEntry(entryId),
+        attachments: await _fetchAttachmentsForEntry(entryId),
+      );
+    });
+  }
+
+  @override
+  Stream<int> watchPlannedRepairCount(int carProfileId) {
+    final query = _database.select(_database.repairEntries)
+      ..where((table) => table.carProfileId.equals(carProfileId))
+      ..where((table) => table.status.equals(RepairStatus.planned.storageValue))
+      ..where((table) => table.isModification.equals(false));
+
+    return query.watch().map((rows) => rows.length);
+  }
+
+  @override
+  Future<int> createEntry(int carProfileId, RepairEntryInput input) async {
+    return _database.transaction(() async {
+      final entryId = await _database
+          .into(_database.repairEntries)
+          .insert(
+            _buildRepairEntryCompanion(input, carProfileId: carProfileId),
+          );
+      await _replaceParts(entryId, input.parts);
+      return entryId;
+    });
+  }
+
+  @override
+  Future<void> updateEntry(int entryId, RepairEntryInput input) async {
+    await _database.transaction(() async {
+      final now = DateTime.now();
+      await (_database.update(
+        _database.repairEntries,
+      )..where((table) => table.id.equals(entryId))).write(
+        RepairEntriesCompanion(
+          status: Value(input.status),
+          isModification: Value(input.isModification),
+          area: Value(input.area),
+          urgency: Value(input.urgency),
+          title: Value(input.title.trim()),
+          description: Value(_normalizeOptionalText(input.description)),
+          completedAt: Value(input.completedAt),
+          updatedAt: Value(now),
+        ),
+      );
+      await _replaceParts(entryId, input.parts);
+    });
+  }
+
+  @override
+  Future<void> replaceAttachments(
+    int entryId,
+    List<RepairAttachmentInput> attachments,
+  ) async {
+    await _database.transaction(() async {
+      await (_database.delete(
+        _database.repairAttachments,
+      )..where((table) => table.repairEntryId.equals(entryId))).go();
+      await _insertAttachments(entryId, attachments);
+    });
+  }
+
+  @override
+  Future<List<String>> replaceExistingAttachmentSet(
+    int entryId,
+    List<int> retainedAttachmentIds,
+    List<RepairAttachmentInput> newAttachments,
+  ) async {
+    return _database.transaction(() async {
+      final current = await (_database.select(
+        _database.repairAttachments,
+      )..where((table) => table.repairEntryId.equals(entryId))).get();
+
+      final removed = current
+          .where((attachment) => !retainedAttachmentIds.contains(attachment.id))
+          .toList();
+
+      if (removed.isNotEmpty) {
+        await (_database.delete(_database.repairAttachments)
+              ..where((table) => table.id.isIn(removed.map((item) => item.id))))
+            .go();
+      }
+
+      await _insertAttachments(entryId, newAttachments);
+      return removed.map((item) => item.storedPath).toList();
+    });
+  }
+
+  @override
+  Future<List<String>> deleteEntry(int entryId) async {
+    return _database.transaction(() async {
+      final attachments = await (_database.select(
+        _database.repairAttachments,
+      )..where((table) => table.repairEntryId.equals(entryId))).get();
+      await (_database.delete(
+        _database.repairParts,
+      )..where((table) => table.repairEntryId.equals(entryId))).go();
+      await (_database.delete(
+        _database.repairAttachments,
+      )..where((table) => table.repairEntryId.equals(entryId))).go();
+      await (_database.delete(
+        _database.repairEntries,
+      )..where((table) => table.id.equals(entryId))).go();
+      return attachments.map((item) => item.storedPath).toList();
+    });
+  }
+
+  @override
+  Future<void> markCompleted(int entryId, DateTime completedAt) {
+    return (_database.update(
+      _database.repairEntries,
+    )..where((table) => table.id.equals(entryId))).write(
+      RepairEntriesCompanion(
+        status: const Value(RepairStatus.completed),
+        completedAt: Value(completedAt),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  @override
+  Future<void> reopen(int entryId) async {
+    final query = _database.select(_database.repairEntries)
+      ..where((table) => table.id.equals(entryId));
+    final existing = await query.getSingleOrNull();
+    if (existing == null) {
+      return;
+    }
+
+    await (_database.update(
+      _database.repairEntries,
+    )..where((table) => table.id.equals(entryId))).write(
+      RepairEntriesCompanion(
+        status: const Value(RepairStatus.planned),
+        urgency: Value(existing.urgency ?? RepairUrgency.medium),
+        completedAt: const Value(null),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  RepairEntriesCompanion _buildRepairEntryCompanion(
+    RepairEntryInput input, {
+    required int carProfileId,
+  }) {
+    final now = DateTime.now();
+    return RepairEntriesCompanion.insert(
+      carProfileId: carProfileId,
+      status: input.status,
+      isModification: input.isModification,
+      area: input.area,
+      urgency: Value(input.urgency),
+      title: input.title.trim(),
+      description: Value(_normalizeOptionalText(input.description)),
+      completedAt: Value(input.completedAt),
+      createdAt: now,
+      updatedAt: now,
+    );
+  }
+
+  Future<void> _replaceParts(int entryId, List<RepairPartInput> parts) async {
+    await (_database.delete(
+      _database.repairParts,
+    )..where((table) => table.repairEntryId.equals(entryId))).go();
+
+    if (parts.isEmpty) {
+      return;
+    }
+
+    await _database.batch((batch) {
+      batch.insertAll(
+        _database.repairParts,
+        parts
+            .map(
+              (part) => RepairPartsCompanion.insert(
+                repairEntryId: entryId,
+                title: part.title.trim(),
+                link: Value(_normalizeOptionalText(part.link)),
+              ),
+            )
+            .toList(),
+      );
+    });
+  }
+
+  Future<void> _insertAttachments(
+    int entryId,
+    List<RepairAttachmentInput> attachments,
+  ) async {
+    if (attachments.isEmpty) {
+      return;
+    }
+
+    final now = DateTime.now();
+    await _database.batch((batch) {
+      batch.insertAll(
+        _database.repairAttachments,
+        attachments
+            .map(
+              (attachment) => RepairAttachmentsCompanion.insert(
+                repairEntryId: entryId,
+                kind: attachment.kind,
+                storedPath: attachment.storedPath,
+                originalName: attachment.originalName,
+                mimeType: Value(attachment.mimeType),
+                fileExtension: Value(attachment.fileExtension),
+                createdAt: now,
+              ),
+            )
+            .toList(),
+      );
+    });
+  }
+
+  Future<List<RepairPart>> _fetchPartsForEntry(int entryId) async {
+    final rows =
+        await (_database.select(_database.repairParts)
+              ..where((table) => table.repairEntryId.equals(entryId))
+              ..orderBy([
+                (table) =>
+                    OrderingTerm(expression: table.id, mode: OrderingMode.asc),
+              ]))
+            .get();
+    return rows.map(_mapRepairPart).toList();
+  }
+
+  Future<List<RepairAttachment>> _fetchAttachmentsForEntry(int entryId) async {
+    final rows =
+        await (_database.select(_database.repairAttachments)
+              ..where((table) => table.repairEntryId.equals(entryId))
+              ..orderBy([
+                (table) =>
+                    OrderingTerm(expression: table.id, mode: OrderingMode.asc),
+              ]))
+            .get();
+    return rows.map(_mapRepairAttachment).toList();
+  }
+
+  RepairEntry _mapRepairEntry(RepairEntryRecord record) {
+    return RepairEntry(
+      id: record.id,
+      carProfileId: record.carProfileId,
+      status: record.status,
+      isModification: record.isModification,
+      area: record.area,
+      urgency: record.urgency,
+      title: record.title,
+      description: record.description,
+      completedAt: record.completedAt,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+    );
+  }
+
+  RepairPart _mapRepairPart(RepairPartRecord record) {
+    return RepairPart(
+      id: record.id,
+      repairEntryId: record.repairEntryId,
+      title: record.title,
+      link: record.link,
+    );
+  }
+
+  RepairAttachment _mapRepairAttachment(RepairAttachmentRecord record) {
+    return RepairAttachment(
+      id: record.id,
+      repairEntryId: record.repairEntryId,
+      kind: record.kind,
+      storedPath: record.storedPath,
+      originalName: record.originalName,
+      mimeType: record.mimeType,
+      fileExtension: record.fileExtension,
+      createdAt: record.createdAt,
+    );
+  }
+
+  int _comparePlannedEntries(RepairEntry left, RepairEntry right) {
+    final byUrgency = (right.urgency?.priority ?? 0).compareTo(
+      left.urgency?.priority ?? 0,
+    );
+    if (byUrgency != 0) {
+      return byUrgency;
+    }
+
+    final byUpdated = right.updatedAt.compareTo(left.updatedAt);
+    if (byUpdated != 0) {
+      return byUpdated;
+    }
+
+    return left.title.compareTo(right.title);
+  }
+
+  int _comparePastEntries(RepairEntry left, RepairEntry right) {
+    final leftCompleted = left.completedAt ?? left.updatedAt;
+    final rightCompleted = right.completedAt ?? right.updatedAt;
+    final byCompleted = rightCompleted.compareTo(leftCompleted);
+    if (byCompleted != 0) {
+      return byCompleted;
+    }
+
+    return left.title.compareTo(right.title);
+  }
+
+  String? _normalizeOptionalText(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
   }
 }

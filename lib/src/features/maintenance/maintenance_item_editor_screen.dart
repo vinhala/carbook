@@ -1,4 +1,3 @@
-import 'package:carbook/src/core/theme/app_theme.dart';
 import 'package:carbook/src/domain/maintenance_item_input.dart';
 import 'package:carbook/src/domain/maintenance_schedule_type.dart';
 import 'package:carbook/src/domain/maintenance_time_unit.dart';
@@ -125,7 +124,7 @@ class _MaintenanceItemEditorScreenState
                       if (_scheduleType == MaintenanceScheduleType.time) ...[
                         const SizedBox(height: 16),
                         DropdownButtonFormField<MaintenanceTimeUnit>(
-                          value: _timeUnit,
+                          initialValue: _timeUnit,
                           items: MaintenanceTimeUnit.values
                               .map(
                                 (unit) => DropdownMenuItem(

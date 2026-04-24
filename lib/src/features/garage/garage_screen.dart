@@ -39,7 +39,7 @@ class GarageScreen extends ConsumerWidget {
                 final profile = profiles[index];
                 return _GarageCard(
                   profile: profile,
-                  onTap: () => context.go('/cars/${profile.id}'),
+                  onTap: () => context.push('/cars/${profile.id}'),
                 );
               },
             );

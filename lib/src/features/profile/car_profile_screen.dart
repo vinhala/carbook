@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:carbook/src/core/theme/app_theme.dart';
 import 'package:carbook/src/domain/car_profile.dart';
 import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carbook/src/features/repairs/repair_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -59,6 +60,9 @@ class _CarProfileView extends ConsumerWidget {
         profile.photoPath != null && File(profile.photoPath!).existsSync()
         ? FileImage(File(profile.photoPath!))
         : null;
+    final plannedRepairsAsync = ref.watch(
+      plannedRepairCountProvider(profile.id),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -227,6 +231,52 @@ class _CarProfileView extends ConsumerWidget {
                         ),
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _DetailCard(
+              title: 'Repairs & modifications',
+              trailing: FilledButton.tonalIcon(
+                key: const ValueKey('open-repairs-button'),
+                onPressed: () => context.push('/cars/${profile.id}/repairs'),
+                icon: const Icon(Icons.build_rounded),
+                label: const Text('Open'),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Keep planned repairs, completed fixes, and upgrades together so you always know what is next.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceLow,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: plannedRepairsAsync.when(
+                      data: (count) => Text(
+                        key: const ValueKey('planned-repairs-count'),
+                        count == 1
+                            ? '1 planned repair'
+                            : '$count planned repairs',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      loading: () => const Text('Loading planned repairs...'),
+                      error: (error, stackTrace) =>
+                          const Text('Unable to load planned repairs.'),
+                    ),
                   ),
                 ],
               ),

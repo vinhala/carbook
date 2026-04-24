@@ -2,6 +2,7 @@ import 'package:carbook/src/app/app.dart';
 import 'package:carbook/src/data/local/app_database.dart';
 import 'package:carbook/src/features/maintenance/maintenance_controller.dart';
 import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carbook/src/features/repairs/repair_controller.dart';
 import 'package:carbook/src/services/media_service.dart';
 import 'package:carbook/src/services/reminder_scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
   final database = AppDatabase();
   final repository = DriftCarProfileRepository(database);
   final maintenanceRepository = DriftMaintenanceRepository(database);
+  final repairRepository = DriftRepairRepository(database);
   final plugin = FlutterLocalNotificationsPlugin();
   final notificationClient = FlutterLocalNotificationsClient(plugin);
   await notificationClient.initialize();
@@ -34,6 +36,7 @@ Future<void> main() async {
         appDatabaseProvider.overrideWithValue(database),
         carProfileRepositoryProvider.overrideWithValue(repository),
         maintenanceRepositoryProvider.overrideWithValue(maintenanceRepository),
+        repairRepositoryProvider.overrideWithValue(repairRepository),
         mediaServiceProvider.overrideWithValue(mediaService),
         reminderSchedulerProvider.overrideWithValue(reminderScheduler),
         carProfileControllerProvider.overrideWithValue(
@@ -45,6 +48,12 @@ Future<void> main() async {
         ),
         maintenanceControllerProvider.overrideWithValue(
           MaintenanceController(repository: maintenanceRepository),
+        ),
+        repairControllerProvider.overrideWithValue(
+          RepairController(
+            repository: repairRepository,
+            mediaService: mediaService,
+          ),
         ),
       ],
       child: const CarbookApp(),

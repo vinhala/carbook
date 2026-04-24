@@ -275,14 +275,6 @@ class _MaintenanceCard extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppTheme.textSecondary),
                         ),
-                        Text(
-                          formatMaintenanceDueLabel(entry.dueStatus),
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: AppTheme.secondary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
                       ],
                     ),
                   ),

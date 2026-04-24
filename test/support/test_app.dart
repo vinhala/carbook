@@ -3,8 +3,10 @@ import 'package:carbook/src/core/theme/app_theme.dart';
 import 'package:carbook/src/data/local/app_database.dart';
 import 'package:carbook/src/domain/car_profile_repository.dart';
 import 'package:carbook/src/domain/maintenance_repository.dart';
+import 'package:carbook/src/domain/repair_repository.dart';
 import 'package:carbook/src/features/maintenance/maintenance_controller.dart';
 import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carbook/src/features/repairs/repair_controller.dart';
 import 'package:carbook/src/services/media_service.dart';
 import 'package:carbook/src/services/reminder_scheduler.dart';
 import 'package:flutter/material.dart';
@@ -15,18 +17,22 @@ ProviderScope buildTestApp({
   required AppDatabase database,
   required CarProfileRepository repository,
   required MaintenanceRepository maintenanceRepository,
+  RepairRepository? repairRepository,
   required MediaService mediaService,
   required ReminderScheduler reminderScheduler,
   bool allowRuntimeFontFetching = false,
 }) {
   GoogleFonts.config.allowRuntimeFetching = allowRuntimeFontFetching;
   final router = AppRouter.createRouter();
+  final resolvedRepairRepository =
+      repairRepository ?? DriftRepairRepository(database);
 
   return ProviderScope(
     overrides: [
       appDatabaseProvider.overrideWithValue(database),
       carProfileRepositoryProvider.overrideWithValue(repository),
       maintenanceRepositoryProvider.overrideWithValue(maintenanceRepository),
+      repairRepositoryProvider.overrideWithValue(resolvedRepairRepository),
       mediaServiceProvider.overrideWithValue(mediaService),
       reminderSchedulerProvider.overrideWithValue(reminderScheduler),
       carProfileControllerProvider.overrideWithValue(
@@ -38,6 +44,12 @@ ProviderScope buildTestApp({
       ),
       maintenanceControllerProvider.overrideWithValue(
         MaintenanceController(repository: maintenanceRepository),
+      ),
+      repairControllerProvider.overrideWithValue(
+        RepairController(
+          repository: resolvedRepairRepository,
+          mediaService: mediaService,
+        ),
       ),
     ],
     child: MaterialApp.router(
