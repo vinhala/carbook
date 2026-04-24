@@ -36,6 +36,7 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
         child: scheduleAsync.when(
           data: (items) => _MaintenanceScheduleBody(
             items: items,
+            mileageUnit: profileAsync.asData?.value?.mileageUnit ?? 'mi',
             onCreateItem: () => context.push('/cars/$carId/maintenance/new'),
             onOpenItem: (itemId) =>
                 context.push('/cars/$carId/maintenance/$itemId'),
@@ -58,12 +59,14 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
 class _MaintenanceScheduleBody extends StatelessWidget {
   const _MaintenanceScheduleBody({
     required this.items,
+    required this.mileageUnit,
     required this.onCreateItem,
     required this.onOpenItem,
     required this.onQuickLog,
   });
 
   final List<MaintenanceScheduleEntry> items;
+  final String mileageUnit;
   final VoidCallback onCreateItem;
   final ValueChanged<int> onOpenItem;
   final ValueChanged<int> onQuickLog;
@@ -145,6 +148,7 @@ class _MaintenanceScheduleBody extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: _MaintenanceCard(
                 entry: entry,
+                mileageUnit: mileageUnit,
                 onTap: () => onOpenItem(entry.item.id),
                 onQuickLog: () => onQuickLog(entry.item.id),
               ),
@@ -164,6 +168,7 @@ class _MaintenanceScheduleBody extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: _MaintenanceCard(
                 entry: entry,
+                mileageUnit: mileageUnit,
                 onTap: () => onOpenItem(entry.item.id),
                 onQuickLog: () => onQuickLog(entry.item.id),
               ),
@@ -207,11 +212,13 @@ class _SectionHeader extends StatelessWidget {
 class _MaintenanceCard extends StatelessWidget {
   const _MaintenanceCard({
     required this.entry,
+    required this.mileageUnit,
     required this.onTap,
     required this.onQuickLog,
   });
 
   final MaintenanceScheduleEntry entry;
+  final String mileageUnit;
   final VoidCallback onTap;
   final VoidCallback onQuickLog;
 
@@ -253,7 +260,10 @@ class _MaintenanceCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          formatMaintenanceSchedule(entry.item),
+                          formatMaintenanceSchedule(
+                            entry.item,
+                            mileageUnit: mileageUnit,
+                          ),
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppTheme.textSecondary),
                         ),
@@ -271,7 +281,7 @@ class _MaintenanceCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Next target: ${formatMaintenanceNextTarget(entry.dueStatus)}',
+                          'Next target: ${formatMaintenanceNextTarget(entry.dueStatus, mileageUnit: mileageUnit)}',
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppTheme.textSecondary),
                         ),

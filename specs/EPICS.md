@@ -28,7 +28,7 @@ As a user I want to be able to create a profile for one of my cars so that I can
 1. User launches the app
 2. App loads list of existing profiles
 3. User asks app to create new profile
-4. App asks the user for the make, model, month and year of first registration, engine, vin and current mileage of the car to add
+4. App asks the user for the make, model, month and year of first registration, engine, vin, distance unit (miles or kilometers) and current mileage of the car to add
 5. User enters details
 6. App asks user if they want to add a picture
 7. User selects an image from their image gallery
@@ -63,7 +63,7 @@ As a user I want to be able to edit the profile for one of my cars so that I can
 #### Main Flow
 1. User enables edit mode
 2. App shows controls for each of the car profile fields
-3. User edits make, model, engine, year, mileage, vin or picture
+3. User edits make, model, engine, year, mileage, distance unit, vin or picture
 4. User asks app to save changes
 5. App saves changes and shows profile in read only mode
 

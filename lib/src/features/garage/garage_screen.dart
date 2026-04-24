@@ -18,7 +18,7 @@ class GarageScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Carbook')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/cars/new'),
+        onPressed: () => context.push('/cars/new'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add car'),
       ),
@@ -27,7 +27,7 @@ class GarageScreen extends ConsumerWidget {
           data: (profiles) {
             if (profiles.isEmpty) {
               return _GarageEmptyState(
-                onCreateProfile: () => context.go('/cars/new'),
+                onCreateProfile: () => context.push('/cars/new'),
               );
             }
 

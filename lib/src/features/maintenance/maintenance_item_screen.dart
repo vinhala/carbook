@@ -60,6 +60,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
           carProfileProvider(details.item.carProfileId),
         );
         final currentMileage = profileAsync.asData?.value?.currentMileage;
+        final mileageUnit = profileAsync.asData?.value?.mileageUnit ?? 'mi';
 
         return Scaffold(
           appBar: AppBar(
@@ -122,7 +123,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    formatMaintenanceSchedule(details.item),
+                                    formatMaintenanceSchedule(details.item, mileageUnit: mileageUnit),
                                     style: Theme.of(context).textTheme.bodyLarge
                                         ?.copyWith(
                                           color: AppTheme.textSecondary,
@@ -134,7 +135,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                           ],
                         ),
                         const SizedBox(height: 18),
-                        _StatusBanner(details: details),
+                        _StatusBanner(details: details, mileageUnit: mileageUnit),
                       ],
                     ),
                   ),
@@ -154,11 +155,11 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                         const SizedBox(height: 16),
                         _SummaryRow(
                           label: 'Next target',
-                          value: formatMaintenanceNextTarget(details.dueStatus),
+                          value: formatMaintenanceNextTarget(details.dueStatus, mileageUnit: mileageUnit),
                         ),
                         _SummaryRow(
                           label: 'Status',
-                          value: formatMaintenanceDueLabel(details.dueStatus),
+                          value: formatMaintenanceDueLabel(details.dueStatus, mileageUnit: mileageUnit),
                         ),
                         _SummaryRow(
                           label: 'Last service',
@@ -172,7 +173,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                         if (currentMileage != null)
                           _SummaryRow(
                             label: 'Current odometer',
-                            value: formatPerformedMileage(currentMileage),
+                            value: formatPerformedMileage(currentMileage, mileageUnit: mileageUnit),
                             isLast: true,
                           ),
                       ],
@@ -206,6 +207,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                                 performedAt: log.performedAt,
                                 mileage: log.mileage,
                                 note: log.note,
+                                mileageUnit: mileageUnit,
                               ),
                             ),
                           ),
@@ -244,15 +246,17 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
         itemId: details.item.id,
         initialMileage:
             profile?.currentMileage ?? details.dueStatus.lastPerformedMileage,
+        mileageUnit: profile?.mileageUnit ?? 'mi',
       ),
     );
   }
 }
 
 class _StatusBanner extends StatelessWidget {
-  const _StatusBanner({required this.details});
+  const _StatusBanner({required this.details, required this.mileageUnit});
 
   final MaintenanceItemDetails details;
+  final String mileageUnit;
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +279,7 @@ class _StatusBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              formatMaintenanceDueLabel(details.dueStatus),
+              formatMaintenanceDueLabel(details.dueStatus, mileageUnit: mileageUnit),
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -334,11 +338,13 @@ class _HistoryCard extends StatelessWidget {
     required this.performedAt,
     required this.mileage,
     required this.note,
+    required this.mileageUnit,
   });
 
   final DateTime performedAt;
   final int mileage;
   final String? note;
+  final String mileageUnit;
 
   @override
   Widget build(BuildContext context) {
@@ -365,7 +371,7 @@ class _HistoryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                formatPerformedMileage(mileage),
+                formatPerformedMileage(mileage, mileageUnit: mileageUnit),
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -388,10 +394,15 @@ class _HistoryCard extends StatelessWidget {
 }
 
 class _LogPerformedWorkSheet extends ConsumerStatefulWidget {
-  const _LogPerformedWorkSheet({required this.itemId, this.initialMileage});
+  const _LogPerformedWorkSheet({
+    required this.itemId,
+    this.initialMileage,
+    this.mileageUnit = 'mi',
+  });
 
   final int itemId;
   final int? initialMileage;
+  final String mileageUnit;
 
   @override
   ConsumerState<_LogPerformedWorkSheet> createState() =>
@@ -478,9 +489,9 @@ class _LogPerformedWorkSheetState
                 TextFormField(
                   controller: _mileageController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Mileage',
-                    suffixText: 'mi',
+                    suffixText: widget.mileageUnit,
                   ),
                   validator: (value) {
                     final mileage = int.tryParse(value ?? '');

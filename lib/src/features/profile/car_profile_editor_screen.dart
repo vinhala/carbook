@@ -60,6 +60,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
   late final TextEditingController _mileageController;
   late DateTime _firstRegistrationMonth;
   late MileageReminderFrequency _reminderFrequency;
+  late String _mileageUnit;
   String? _photoPath;
   bool _isSaving = false;
 
@@ -81,6 +82,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
         DateTime(DateTime.now().year, DateTime.now().month);
     _reminderFrequency =
         profile?.reminderFrequency ?? MileageReminderFrequency.monthly;
+    _mileageUnit = profile?.mileageUnit ?? 'mi';
     _photoPath = profile?.photoPath;
   }
 
@@ -103,7 +105,24 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? 'Edit Profile' : 'Add New Car')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit Profile' : 'Add New Car'),
+        leading: _isEditing
+            ? null
+            : IconButton(
+                tooltip: 'Back to garage',
+                onPressed: _isSaving
+                    ? null
+                    : () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go('/');
+                        }
+                      },
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -231,12 +250,25 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                         ),
                       ),
                       const SizedBox(height: 14),
+                      SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(value: 'mi', label: Text('Miles')),
+                          ButtonSegment(value: 'km', label: Text('Kilometers')),
+                        ],
+                        selected: {_mileageUnit},
+                        onSelectionChanged: _isSaving
+                            ? null
+                            : (selection) => setState(() {
+                                _mileageUnit = selection.first;
+                              }),
+                      ),
+                      const SizedBox(height: 14),
                       TextFormField(
                         controller: _mileageController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Current mileage',
-                          suffixText: 'mi',
+                          suffixText: _mileageUnit,
                         ),
                         validator: _mileageValidator,
                       ),
@@ -403,6 +435,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
       firstRegistrationMonth: _firstRegistrationMonth,
       vin: _vinController.text,
       currentMileage: int.parse(_mileageController.text),
+      mileageUnit: _mileageUnit,
       photoPath: _photoPath,
       reminderFrequency: _reminderFrequency,
     );
@@ -418,13 +451,17 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
         if (!context.mounted) {
           return;
         }
-        context.go('/cars/${profile.id}');
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/cars/${profile.id}');
+        }
       } else {
         final profileId = await controller.createProfile(input);
         if (!context.mounted) {
           return;
         }
-        context.go('/cars/$profileId');
+        context.pushReplacement('/cars/$profileId');
       }
     } catch (error) {
       if (!context.mounted) {

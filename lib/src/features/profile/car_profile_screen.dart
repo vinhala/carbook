@@ -70,7 +70,7 @@ class _CarProfileView extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Edit profile',
-            onPressed: () => context.go('/cars/${profile.id}/edit'),
+            onPressed: () => context.push('/cars/${profile.id}/edit'),
             icon: const Icon(Icons.edit_outlined),
           ),
         ],
@@ -318,9 +318,9 @@ class _CarProfileView extends ConsumerWidget {
             controller: controller,
             keyboardType: TextInputType.number,
             autofocus: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Mileage',
-              suffixText: 'mi',
+              suffixText: profile.mileageUnit,
             ),
             validator: (value) {
               final mileage = int.tryParse(value ?? '');

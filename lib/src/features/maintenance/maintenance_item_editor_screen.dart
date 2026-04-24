@@ -2,6 +2,7 @@ import 'package:carbook/src/domain/maintenance_item_input.dart';
 import 'package:carbook/src/domain/maintenance_schedule_type.dart';
 import 'package:carbook/src/domain/maintenance_time_unit.dart';
 import 'package:carbook/src/features/maintenance/maintenance_controller.dart';
+import 'package:carbook/src/features/profile/car_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,6 +47,13 @@ class _MaintenanceItemEditorScreenState
         body: Center(child: Text('Invalid maintenance item.')),
       );
     }
+
+    final mileageUnit = ref
+            .watch(carProfileProvider(widget.carId!))
+            .asData
+            ?.value
+            ?.mileageUnit ??
+        'mi';
 
     return Scaffold(
       appBar: AppBar(title: const Text('New Maintenance Item')),
@@ -116,7 +124,7 @@ class _MaintenanceItemEditorScreenState
                               : 'Time interval',
                           suffixText:
                               _scheduleType == MaintenanceScheduleType.distance
-                              ? 'mi'
+                              ? mileageUnit
                               : null,
                         ),
                         validator: _intervalValidator,
