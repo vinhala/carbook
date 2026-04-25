@@ -1,0 +1,12 @@
+networks:
+  caddy-network:
+    external: true
+    
+  private:
+    driver: overlay
+    attachable: true
+
+services:
+  api:
+    labels:
+      caddy: api.carful.diy

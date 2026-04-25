@@ -41,6 +41,12 @@ analysis_benchmark.json
 .pub-preload-cache/
 .pub/
 build/
+backend/.venv/
+backend/__pycache__/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/*.egg-info/
+backend/*.sqlite3
 flutter_*.png
 linked_*.ds
 unlinked.ds

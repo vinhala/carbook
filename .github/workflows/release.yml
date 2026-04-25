@@ -45,7 +45,7 @@ jobs:
             exit 1
           fi
 
-          pubspec_version="$(awk -F': ' '/^version: / { print $2; exit }' pubspec.yaml)"
+          pubspec_version="$(awk -F': ' '/^version: / { print $2; exit }' mobile/pubspec.yaml)"
           marketing_version="${pubspec_version%%+*}"
           if [[ "$marketing_version" != "$version" ]]; then
             echo "::error title=Version mismatch::Tag $tag resolves to $version but pubspec.yaml declares $marketing_version."
@@ -119,9 +119,11 @@ jobs:
           echo "ANDROID_STORE_FILE=$keystore_path" >> "$GITHUB_ENV"
 
       - name: Install Flutter dependencies
+        working-directory: mobile
         run: flutter pub get
 
       - name: Build Android app bundle
+        working-directory: mobile
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -133,8 +135,9 @@ jobs:
           --build-number "${{ needs.prepare.outputs.build_number }}"
 
       - name: Upload Android bundle to Google Play
+        working-directory: mobile
         env:
-          ANDROID_AAB_PATH: ${{ github.workspace }}/build/app/outputs/bundle/release/app-release.aab
+          ANDROID_AAB_PATH: ${{ github.workspace }}/mobile/build/app/outputs/bundle/release/app-release.aab
           ANDROID_PACKAGE_NAME: com.vinhala.carbook
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           PLAY_TRACK: ${{ needs.prepare.outputs.play_track }}
@@ -227,7 +230,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          cat <<EOF > ios/Flutter/Release-secrets.xcconfig
+          cat <<EOF > mobile/ios/Flutter/Release-secrets.xcconfig
           APPLE_DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
           IOS_CODE_SIGN_STYLE = Manual
           IOS_PROVISIONING_PROFILE_NAME = ${IOS_PROVISIONING_PROFILE_NAME}
@@ -256,9 +259,11 @@ jobs:
           EOF
 
       - name: Install Flutter dependencies
+        working-directory: mobile
         run: flutter pub get
 
       - name: Build signed iOS IPA
+        working-directory: mobile
         run: >
           flutter build ipa
           --release
@@ -270,7 +275,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ipa_path="$(find "$GITHUB_WORKSPACE/build/ios/ipa" -maxdepth 1 -name '*.ipa' -print -quit)"
+          ipa_path="$(find "$GITHUB_WORKSPACE/mobile/build/ios/ipa" -maxdepth 1 -name '*.ipa' -print -quit)"
           if [[ -z "$ipa_path" ]]; then
             echo "::error title=Missing IPA::No IPA was produced in build/ios/ipa."
             exit 1
@@ -278,6 +283,7 @@ jobs:
           echo "IOS_IPA_PATH=$ipa_path" >> "$GITHUB_ENV"
 
       - name: Upload IPA to App Store Connect
+        working-directory: mobile
         env:
           APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
           APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}

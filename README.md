@@ -1,11 +1,50 @@
 # carbook
-Mobile application for keeping track of car maintenance, spare parts, documenting procedures and getting AI based guidance
+Monorepo for the Carbook mobile app and its minimal AI relay backend.
+
+## Layout
+
+- `mobile/`: Flutter application for vehicle profiles, maintenance, repairs, manuals, and the AI assistant UI
+- `backend/`: FastAPI relay that keeps the OpenAI API key server-side and powers manual ingestion, guarded chat, and AI schedule suggestions
+
+## Local Development
+
+### Mobile
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+uvicorn app.main:app --reload
+```
+
+Required backend environment variables:
+
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL` (optional, defaults to `gpt-5.4-mini`)
+- `CARBOOK_DATABASE_URL` (optional, defaults to local SQLite)
+- `CARBOOK_ALLOWED_ORIGIN` (optional, defaults to `*`)
+
+The Flutter app can target the backend with:
+
+```bash
+cd mobile
+flutter run --dart-define=CARBOOK_API_BASE_URL=http://localhost:8000
+```
 
 ## GitHub Actions
 
 The repository includes two GitHub Actions workflows:
 
-- `ci.yml` runs on every push to `main` and executes `flutter test test`.
+- `ci.yml` runs Flutter tests from `mobile/` and backend tests from `backend/`.
 - `release.yml` runs on tags matching `v*` and `preview*`.
 
 Release tags are interpreted as follows:
@@ -13,7 +52,7 @@ Release tags are interpreted as follows:
 - `vX.Y.Z` publishes a production release to App Store Connect and the Play Store production track.
 - `previewX.Y.Z` or `preview-X.Y.Z` publishes a beta release to TestFlight and the Play Store internal track.
 
-The release workflow fails fast unless the tag version exactly matches the marketing version in `pubspec.yaml`.
+The release workflow fails fast unless the tag version exactly matches the marketing version in `mobile/pubspec.yaml`.
 
 ### Required GitHub Secrets
 
@@ -40,4 +79,4 @@ iOS:
 
 Create GitHub environments named `production` and `preview` and attach the corresponding store credentials there if you want approvals or environment-scoped secrets on release jobs.
 
-For local release builds, Android signing can come from `android/key.properties`, and iOS can override release signing with an untracked `ios/Flutter/Release-secrets.xcconfig`.
+For local release builds, Android signing can come from `mobile/android/key.properties`, and iOS can override release signing with an untracked `mobile/ios/Flutter/Release-secrets.xcconfig`.
