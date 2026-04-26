@@ -90,6 +90,12 @@ jobs:
           bundler-cache: true
           ruby-version: "3.3"
 
+      - name: Install Fastlane dependencies
+        working-directory: mobile
+        run: |
+          gem install bundler -v 2.5.22
+          bundle install
+
       - name: Validate Android secrets
         shell: bash
         env:
@@ -169,6 +175,12 @@ jobs:
         with:
           bundler-cache: true
           ruby-version: "3.3"
+
+      - name: Install Fastlane dependencies
+        working-directory: mobile
+        run: |
+          gem install bundler -v 2.5.22
+          bundle install
 
       - name: Validate iOS secrets
         shell: bash
