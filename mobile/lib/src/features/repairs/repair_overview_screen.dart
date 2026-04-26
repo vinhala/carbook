@@ -1,8 +1,8 @@
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/repair_entry.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
-import 'package:carbook/src/features/repairs/repair_controller.dart';
-import 'package:carbook/src/features/repairs/repair_formatters.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/repair_entry.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/features/repairs/repair_controller.dart';
+import 'package:carful/src/features/repairs/repair_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

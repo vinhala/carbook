@@ -1,10 +1,11 @@
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/assistant_message.dart';
-import 'package:carbook/src/domain/assistant_message_source.dart';
-import 'package:carbook/src/features/ai/ai_assistant_controller.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/assistant_message.dart';
+import 'package:carful/src/domain/assistant_message_source.dart';
+import 'package:carful/src/features/ai/ai_assistant_controller.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AiAssistantScreen extends ConsumerStatefulWidget {
   const AiAssistantScreen({super.key, required this.carId});
@@ -34,6 +35,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
     final profileAsync = ref.watch(carProfileProvider(carId));
     final messagesAsync = ref.watch(assistantMessagesProvider(carId));
+    final manualsAsync = ref.watch(workshopManualsProvider(carId));
+    final hasManuals = manualsAsync.asData?.value.isNotEmpty ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -67,7 +70,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
-                      'Ask about this car, its workshop manuals, maintenance, repairs, and troubleshooting.',
+                      hasManuals
+                          ? 'Ask about this car, its workshop manuals, maintenance, repairs, and troubleshooting.'
+                          : 'Add at least one workshop manual to start using the assistant.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
@@ -77,57 +82,74 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
               ),
             ),
             Expanded(
-              child: messagesAsync.when(
-                data: (messages) => _MessageList(messages: messages),
+              child: manualsAsync.when(
+                data: (manuals) {
+                  if (manuals.isEmpty) {
+                    return const _AssistantDisabledState();
+                  }
+
+                  return messagesAsync.when(
+                    data: (messages) => _MessageList(messages: messages),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, stackTrace) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text('Unable to load AI assistant.\n$error'),
+                      ),
+                    ),
+                  );
+                },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stackTrace) => Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text('Unable to load AI assistant.\n$error'),
+                    child: Text('Unable to load workshop manuals.\n$error'),
                   ),
                 ),
               ),
             ),
-            SafeArea(
-              top: false,
-              minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const ValueKey('assistant-message-field'),
-                      controller: _controller,
-                      minLines: 1,
-                      maxLines: 4,
-                      decoration: const InputDecoration(
-                        hintText:
-                            'Ask about maintenance, specs, or procedures...',
+            if (hasManuals)
+              SafeArea(
+                top: false,
+                minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        key: const ValueKey('assistant-message-field'),
+                        controller: _controller,
+                        minLines: 1,
+                        maxLines: 4,
+                        decoration: const InputDecoration(
+                          hintText:
+                              'Ask about maintenance, specs, or procedures...',
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  FilledButton(
-                    key: const ValueKey('assistant-send-button'),
-                    onPressed: _isSending
-                        ? null
-                        : () => _sendMessage(context, carId),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size(56, 56),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                    const SizedBox(width: 12),
+                    FilledButton(
+                      key: const ValueKey('assistant-send-button'),
+                      onPressed: _isSending
+                          ? null
+                          : () => _sendMessage(context, carId),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(56, 56),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                       ),
+                      child: _isSending
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.send_rounded),
                     ),
-                    child: _isSending
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send_rounded),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -145,7 +167,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     try {
       await ref.read(aiAssistantControllerProvider).sendMessage(carId, text);
     } catch (error) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,6 +178,46 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         setState(() => _isSending = false);
       }
     }
+  }
+}
+
+class _AssistantDisabledState extends StatelessWidget {
+  const _AssistantDisabledState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryContainer,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: const Icon(
+                Icons.picture_as_pdf_outlined,
+                color: AppTheme.primary,
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'Add at least one workshop manual to start using the assistant.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -258,20 +320,30 @@ class _AssistantBubble extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: sources
-                  .map<Widget>(
-                    (source) => Chip(
-                      label: Text(
-                        source.citation == null
-                            ? source.label
-                            : '${source.label} • ${source.citation}',
-                      ),
-                    ),
-                  )
+                  .map<Widget>((source) => _SourceChip(source: source))
                   .toList(),
             ),
           ],
         ],
       ),
     );
+  }
+}
+
+class _SourceChip extends StatelessWidget {
+  const _SourceChip({required this.source});
+
+  final AssistantMessageSource source;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = source.url;
+    if (source.kind == 'web' && url != null && url.isNotEmpty) {
+      return ActionChip(
+        label: Text(source.displayLabel),
+        onPressed: () => launchUrl(Uri.parse(url)),
+      );
+    }
+    return Chip(label: Text(source.displayLabel));
   }
 }

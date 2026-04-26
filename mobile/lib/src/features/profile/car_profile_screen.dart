@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/workshop_manual.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
-import 'package:carbook/src/features/repairs/repair_controller.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/workshop_manual.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/features/repairs/repair_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -41,14 +41,22 @@ class CarProfileScreen extends ConsumerWidget {
   }
 }
 
-class _CarProfileView extends ConsumerWidget {
+class _CarProfileView extends ConsumerStatefulWidget {
   const _CarProfileView({required this.profile});
 
   final CarProfile profile;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_CarProfileView> createState() => _CarProfileViewState();
+}
+
+class _CarProfileViewState extends ConsumerState<_CarProfileView> {
+  bool _isAddingManual = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final profile = widget.profile;
     final registration = DateFormat.yMMMM().format(
       profile.firstRegistrationMonth,
     );
@@ -66,6 +74,7 @@ class _CarProfileView extends ConsumerWidget {
       plannedRepairCountProvider(profile.id),
     );
     final manualsAsync = ref.watch(workshopManualsProvider(profile.id));
+    final hasManuals = manualsAsync.asData?.value.isNotEmpty ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -193,7 +202,7 @@ class _CarProfileView extends ConsumerWidget {
                   Text(
                     profile.reminderFrequency.showsWarning
                         ? 'This cadence can make it easier to miss critical maintenance intervals.'
-                        : 'Carbook will keep nudging you to keep mileage fresh for future maintenance tracking.',
+                        : 'Carful will keep nudging you to keep mileage fresh for future maintenance tracking.',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
@@ -289,9 +298,14 @@ class _CarProfileView extends ConsumerWidget {
               title: 'Workshop manuals',
               trailing: FilledButton.tonalIcon(
                 key: const ValueKey('add-manual-button'),
-                onPressed: () => _addManuals(context, ref, profile),
-                icon: const Icon(Icons.upload_file_rounded),
-                label: const Text('Add manual'),
+                onPressed: _isAddingManual ? null : () => _addManuals(context),
+                icon: _isAddingManual
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.upload_file_rounded),
+                label: Text(_isAddingManual ? 'Adding...' : 'Add manual'),
               ),
               child: manualsAsync.when(
                 data: (manuals) => _WorkshopManualList(
@@ -314,12 +328,16 @@ class _CarProfileView extends ConsumerWidget {
               title: 'AI Assistant',
               trailing: FilledButton.tonalIcon(
                 key: const ValueKey('open-ai-assistant-button'),
-                onPressed: () => context.push('/cars/${profile.id}/assistant'),
+                onPressed: hasManuals
+                    ? () => context.push('/cars/${profile.id}/assistant')
+                    : null,
                 icon: const Icon(Icons.smart_toy_outlined),
                 label: const Text('Open'),
               ),
               child: Text(
-                'Use your manuals, maintenance history, and repair context to answer vehicle-specific questions.',
+                hasManuals
+                    ? 'Use your manuals, maintenance history, and repair context to answer vehicle-specific questions.'
+                    : 'Add at least one workshop manual to start using the assistant.',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppTheme.textSecondary,
                 ),
@@ -402,13 +420,14 @@ class _CarProfileView extends ConsumerWidget {
     }
   }
 
-  Future<void> _addManuals(
-    BuildContext context,
-    WidgetRef ref,
-    CarProfile profile,
-  ) async {
+  Future<void> _addManuals(BuildContext context) async {
+    setState(() {
+      _isAddingManual = true;
+    });
     try {
-      await ref.read(carProfileControllerProvider).addWorkshopManuals(profile);
+      await ref
+          .read(carProfileControllerProvider)
+          .addWorkshopManuals(widget.profile);
     } catch (error) {
       if (!context.mounted) {
         return;
@@ -416,6 +435,12 @@ class _CarProfileView extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Unable to add workshop manuals.\n$error')),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAddingManual = false;
+        });
+      }
     }
   }
 
@@ -439,7 +464,7 @@ class _CarProfileView extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Remove workshop manual?'),
         content: Text(
-          'Carbook will remove ${manual.originalName} from this vehicle and the AI assistant context.',
+          'Carful will remove ${manual.originalName} from this vehicle and the AI assistant context.',
         ),
         actions: [
           TextButton(
@@ -574,7 +599,7 @@ class _WorkshopManualList extends StatelessWidget {
     final theme = Theme.of(context);
     if (manuals.isEmpty) {
       return Text(
-        'Add PDF workshop manuals so Carbook AI can answer questions about this vehicle and generate schedule suggestions.',
+        'Add PDF workshop manuals so Carful AI can answer questions about this vehicle and generate schedule suggestions.',
         style: theme.textTheme.bodyMedium?.copyWith(
           color: AppTheme.textSecondary,
         ),

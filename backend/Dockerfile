@@ -3,7 +3,7 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    CARBOOK_DATABASE_URL=sqlite:////app/data/carbook_backend.sqlite3
+    CARFUL_DATABASE_URL=sqlite:////app/data/carful_backend.sqlite3
 
 WORKDIR /app
 
@@ -19,6 +19,6 @@ RUN python -m pip install --upgrade pip \
 
 RUN mkdir -p /app/data
 
-EXPOSE 8000
+EXPOSE 80
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]

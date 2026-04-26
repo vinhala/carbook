@@ -1,5 +1,5 @@
-# Carbook Epics
-The Carbook mobile application is meant to be the ultimate companion app for people who like to work on their own car. It allows its users to keep track of regular maintenance work, plan and document repairs, plan and document modifications as well as consulting a specialised AI assistant on car related questions.
+# Carful Epics
+The Carful mobile application is meant to be the ultimate companion app for people who like to work on their own car. It allows its users to keep track of regular maintenance work, plan and document repairs, plan and document modifications as well as consulting a specialised AI assistant on car related questions.
 
 ## E.1 Initial Setup
 The owner of a car (user) should be able to install the application from a the Play Store or App Store and perform an initial setup to tailor the app to their car.
@@ -410,7 +410,7 @@ As the owner of a car (user) I want to see all past and planned repairs and modi
 8. App sorts planned modifications descending by urgency from high to low and past modifications descending by date of completion
 
 ## E.5 AI Assistant
-The Carbook AI assistant helps car owners to easily create maintenance schedules for their cars, generate step-by-step instructions for maintenance tasks, repairs and modifications and uses the maintenance and repair history as well as provided workshop manuals to provide detailed answers to questions by the owner.
+The Carful AI assistant helps car owners to easily create maintenance schedules for their cars, generate step-by-step instructions for maintenance tasks, repairs and modifications and uses the maintenance and repair history as well as provided workshop manuals to provide detailed answers to questions by the owner.
 
 ### US.5.1 Add Workshop Manuals
 As the owner of a car (user) I want to provide workshop manuals for a car so that I and the AI assistant can access them easily and use them during repairs and maintenance tasks.
@@ -501,16 +501,16 @@ As the owner of a car (user) I want the AI assistant to answer me questions abou
 7. App shows profile
 
 ## E.6 Onboarding Guide
-As a user who has just installed the Carbook app I want to be guided through the setup of the first car and learn about the functioning of the app by going through a brief onboarding guide in order to be able to quickly start using the app.
+As a user who has just installed the Carful app I want to be guided through the setup of the first car and learn about the functioning of the app by going through a brief onboarding guide in order to be able to quickly start using the app.
 
 ### Requires
 - E.1, E.2, E.3, E.4, E.5
 
 ### US.6.1 Enter Vehicle Details
-As a user who has just installed the Carbook app I want to be guided through adding my first car so that I can start extending its profile.
+As a user who has just installed the Carful app I want to be guided through adding my first car so that I can start extending its profile.
 
 #### Preconditions
-- Carbook app installed
+- Carful app installed
 
 #### Main Flow
 1. User launches the app

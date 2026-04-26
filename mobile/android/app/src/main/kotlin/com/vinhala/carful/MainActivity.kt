@@ -1,4 +1,4 @@
-package com.vinhala.carbook
+package com.vinhala.carful
 
 import io.flutter.embedding.android.FlutterActivity
 

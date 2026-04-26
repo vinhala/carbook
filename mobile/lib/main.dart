@@ -1,14 +1,14 @@
-import 'package:carbook/src/app/app.dart';
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/data/local/drift_assistant_repository.dart';
-import 'package:carbook/src/data/local/drift_workshop_manual_repository.dart';
-import 'package:carbook/src/features/ai/ai_assistant_controller.dart';
-import 'package:carbook/src/features/maintenance/maintenance_controller.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
-import 'package:carbook/src/features/repairs/repair_controller.dart';
-import 'package:carbook/src/services/ai_backend_service.dart';
-import 'package:carbook/src/services/media_service.dart';
-import 'package:carbook/src/services/reminder_scheduler.dart';
+import 'package:carful/src/app/app.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/data/local/drift_assistant_repository.dart';
+import 'package:carful/src/data/local/drift_workshop_manual_repository.dart';
+import 'package:carful/src/features/ai/ai_assistant_controller.dart';
+import 'package:carful/src/features/maintenance/maintenance_controller.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/features/repairs/repair_controller.dart';
+import 'package:carful/src/services/ai_backend_service.dart';
+import 'package:carful/src/services/media_service.dart';
+import 'package:carful/src/services/reminder_scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,7 +80,7 @@ Future<void> main() async {
           ),
         ),
       ],
-      child: const CarbookApp(),
+      child: const CarfulApp(),
     ),
   );
 }

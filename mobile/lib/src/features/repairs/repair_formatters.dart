@@ -1,8 +1,8 @@
-import 'package:carbook/src/domain/repair_area.dart';
-import 'package:carbook/src/domain/repair_attachment.dart';
-import 'package:carbook/src/domain/repair_entry.dart';
-import 'package:carbook/src/domain/repair_status.dart';
-import 'package:carbook/src/domain/repair_urgency.dart';
+import 'package:carful/src/domain/repair_area.dart';
+import 'package:carful/src/domain/repair_attachment.dart';
+import 'package:carful/src/domain/repair_entry.dart';
+import 'package:carful/src/domain/repair_status.dart';
+import 'package:carful/src/domain/repair_urgency.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

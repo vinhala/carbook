@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/car_profile_input.dart';
-import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/car_profile_input.dart';
+import 'package:carful/src/domain/mileage_reminder_frequency.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -291,7 +291,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Choose how often Carbook should remind you to update mileage for this car.',
+                        'Choose how often Carful should remind you to update mileage for this car.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppTheme.textSecondary,
                         ),

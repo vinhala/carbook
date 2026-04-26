@@ -1,11 +1,11 @@
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/domain/repair_attachment_input.dart';
-import 'package:carbook/src/domain/repair_entry_details.dart';
-import 'package:carbook/src/domain/repair_entry_input.dart';
-import 'package:carbook/src/domain/repair_overview.dart';
-import 'package:carbook/src/domain/repair_repository.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
-import 'package:carbook/src/services/media_service.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/domain/repair_attachment_input.dart';
+import 'package:carful/src/domain/repair_entry_details.dart';
+import 'package:carful/src/domain/repair_entry_input.dart';
+import 'package:carful/src/domain/repair_overview.dart';
+import 'package:carful/src/domain/repair_repository.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/services/media_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 typedef RepairOverviewRequest = ({int carId, bool modifications});

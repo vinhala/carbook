@@ -1,35 +1,35 @@
 import 'dart:io';
 
-import 'package:carbook/src/core/utils/date_time_utils.dart';
-import 'package:carbook/src/domain/assistant_repository.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/car_profile_input.dart';
-import 'package:carbook/src/domain/car_profile_repository.dart';
-import 'package:carbook/src/domain/maintenance_due_calculator.dart';
-import 'package:carbook/src/domain/maintenance_item.dart';
-import 'package:carbook/src/domain/maintenance_item_details.dart';
-import 'package:carbook/src/domain/maintenance_item_input.dart';
-import 'package:carbook/src/domain/maintenance_log_entry.dart';
-import 'package:carbook/src/domain/maintenance_log_input.dart';
-import 'package:carbook/src/domain/maintenance_repository.dart';
-import 'package:carbook/src/domain/maintenance_schedule_entry.dart';
-import 'package:carbook/src/domain/maintenance_schedule_type.dart';
-import 'package:carbook/src/domain/maintenance_time_unit.dart';
-import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
-import 'package:carbook/src/domain/repair_area.dart';
-import 'package:carbook/src/domain/repair_attachment.dart';
-import 'package:carbook/src/domain/repair_attachment_input.dart';
-import 'package:carbook/src/domain/repair_attachment_kind.dart';
-import 'package:carbook/src/domain/repair_entry.dart';
-import 'package:carbook/src/domain/repair_entry_details.dart';
-import 'package:carbook/src/domain/repair_entry_input.dart';
-import 'package:carbook/src/domain/repair_overview.dart';
-import 'package:carbook/src/domain/repair_part.dart';
-import 'package:carbook/src/domain/repair_part_input.dart';
-import 'package:carbook/src/domain/repair_repository.dart';
-import 'package:carbook/src/domain/repair_status.dart';
-import 'package:carbook/src/domain/repair_urgency.dart';
-import 'package:carbook/src/domain/workshop_manual_repository.dart';
+import 'package:carful/src/core/utils/date_time_utils.dart';
+import 'package:carful/src/domain/assistant_repository.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/car_profile_input.dart';
+import 'package:carful/src/domain/car_profile_repository.dart';
+import 'package:carful/src/domain/maintenance_due_calculator.dart';
+import 'package:carful/src/domain/maintenance_item.dart';
+import 'package:carful/src/domain/maintenance_item_details.dart';
+import 'package:carful/src/domain/maintenance_item_input.dart';
+import 'package:carful/src/domain/maintenance_log_entry.dart';
+import 'package:carful/src/domain/maintenance_log_input.dart';
+import 'package:carful/src/domain/maintenance_repository.dart';
+import 'package:carful/src/domain/maintenance_schedule_entry.dart';
+import 'package:carful/src/domain/maintenance_schedule_type.dart';
+import 'package:carful/src/domain/maintenance_time_unit.dart';
+import 'package:carful/src/domain/mileage_reminder_frequency.dart';
+import 'package:carful/src/domain/repair_area.dart';
+import 'package:carful/src/domain/repair_attachment.dart';
+import 'package:carful/src/domain/repair_attachment_input.dart';
+import 'package:carful/src/domain/repair_attachment_kind.dart';
+import 'package:carful/src/domain/repair_entry.dart';
+import 'package:carful/src/domain/repair_entry_details.dart';
+import 'package:carful/src/domain/repair_entry_input.dart';
+import 'package:carful/src/domain/repair_overview.dart';
+import 'package:carful/src/domain/repair_part.dart';
+import 'package:carful/src/domain/repair_part_input.dart';
+import 'package:carful/src/domain/repair_repository.dart';
+import 'package:carful/src/domain/repair_status.dart';
+import 'package:carful/src/domain/repair_urgency.dart';
+import 'package:carful/src/domain/workshop_manual_repository.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -307,7 +307,7 @@ class AppDatabase extends _$AppDatabase {
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final directory = await getApplicationDocumentsDirectory();
-    final file = File(p.join(directory.path, 'carbook.sqlite'));
+    final file = File(p.join(directory.path, 'carful.sqlite'));
     return NativeDatabase.createInBackground(file);
   });
 }
@@ -562,6 +562,38 @@ class DriftMaintenanceRepository implements MaintenanceRepository {
             updatedAt: now,
           ),
         );
+  }
+
+  @override
+  Future<void> updateItem(int itemId, MaintenanceItemInput input) {
+    final now = DateTime.now();
+    return (_database.update(
+      _database.maintenanceItems,
+    )..where((table) => table.id.equals(itemId))).write(
+      MaintenanceItemsCompanion(
+        description: Value(input.description.trim()),
+        scheduleType: Value(input.scheduleType),
+        intervalValue: Value(input.intervalValue),
+        timeUnit: Value(
+          input.scheduleType == MaintenanceScheduleType.time
+              ? input.timeUnit
+              : null,
+        ),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
+  @override
+  Future<void> deleteItem(int itemId) {
+    return _database.transaction(() async {
+      await (_database.delete(
+        _database.maintenanceLogs,
+      )..where((table) => table.maintenanceItemId.equals(itemId))).go();
+      await (_database.delete(
+        _database.maintenanceItems,
+      )..where((table) => table.id.equals(itemId))).go();
+    });
   }
 
   @override

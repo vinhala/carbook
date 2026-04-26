@@ -1,4 +1,4 @@
-import 'package:carbook/src/domain/repair_attachment_kind.dart';
+import 'package:carful/src/domain/repair_attachment_kind.dart';
 
 class RepairAttachmentInput {
   const RepairAttachmentInput({

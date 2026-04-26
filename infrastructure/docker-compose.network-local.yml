@@ -30,5 +30,4 @@ services:
           - node.role == manager
   api:
     labels:
-      caddy.tls: "internal"
-      caddy: api.localhost
+      caddy: http://api.carful.localhost

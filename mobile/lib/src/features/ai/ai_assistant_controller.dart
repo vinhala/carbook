@@ -1,16 +1,16 @@
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/domain/ai_schedule_suggestion.dart';
-import 'package:carbook/src/domain/assistant_message.dart';
-import 'package:carbook/src/domain/assistant_repository.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/car_profile_repository.dart';
-import 'package:carbook/src/domain/maintenance_repository.dart';
-import 'package:carbook/src/domain/maintenance_schedule_entry.dart';
-import 'package:carbook/src/domain/repair_entry.dart';
-import 'package:carbook/src/domain/repair_repository.dart';
-import 'package:carbook/src/domain/workshop_manual.dart';
-import 'package:carbook/src/domain/workshop_manual_repository.dart';
-import 'package:carbook/src/services/ai_backend_service.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/domain/ai_schedule_suggestion.dart';
+import 'package:carful/src/domain/assistant_message.dart';
+import 'package:carful/src/domain/assistant_repository.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/car_profile_repository.dart';
+import 'package:carful/src/domain/maintenance_repository.dart';
+import 'package:carful/src/domain/maintenance_schedule_entry.dart';
+import 'package:carful/src/domain/repair_entry.dart';
+import 'package:carful/src/domain/repair_repository.dart';
+import 'package:carful/src/domain/workshop_manual.dart';
+import 'package:carful/src/domain/workshop_manual_repository.dart';
+import 'package:carful/src/services/ai_backend_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final aiAssistantControllerProvider = Provider<AiAssistantController>(
@@ -84,6 +84,13 @@ class AiAssistantController {
       return;
     }
 
+    final manuals = await workshopManualRepository.listManuals(carId);
+    if (manuals.isEmpty) {
+      throw StateError(
+        'Add at least one workshop manual to start using the assistant.',
+      );
+    }
+
     await assistantRepository.addMessage(
       carProfileId: carId,
       role: AssistantMessageRole.user,
@@ -93,7 +100,7 @@ class AiAssistantController {
     final context = await _loadContext(carId);
     final conversationId = await assistantRepository.getConversationId(carId);
     final response = await aiBackendService.sendAssistantMessage(
-      clientId: 'carbook-$carId',
+      clientId: 'carful-$carId',
       conversationId: conversationId,
       message: trimmed,
       profile: context.profile,

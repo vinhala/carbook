@@ -1,9 +1,9 @@
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/maintenance_item_details.dart';
-import 'package:carbook/src/domain/maintenance_log_input.dart';
-import 'package:carbook/src/features/maintenance/maintenance_controller.dart';
-import 'package:carbook/src/features/maintenance/maintenance_formatters.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/maintenance_item_details.dart';
+import 'package:carful/src/domain/maintenance_log_input.dart';
+import 'package:carful/src/features/maintenance/maintenance_controller.dart';
+import 'package:carful/src/features/maintenance/maintenance_formatters.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -76,6 +76,15 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
               icon: const Icon(Icons.arrow_back),
             ),
             title: Text(details.item.description),
+            actions: [
+              IconButton(
+                tooltip: 'Edit maintenance item',
+                onPressed: () => context.push(
+                  '/cars/${details.item.carProfileId}/maintenance/${details.item.id}/edit',
+                ),
+                icon: const Icon(Icons.edit_outlined),
+              ),
+            ],
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _openLogComposer(details),

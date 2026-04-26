@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/repair_attachment.dart';
-import 'package:carbook/src/domain/repair_entry_details.dart';
-import 'package:carbook/src/features/repairs/repair_controller.dart';
-import 'package:carbook/src/features/repairs/repair_formatters.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/repair_attachment.dart';
+import 'package:carful/src/domain/repair_entry_details.dart';
+import 'package:carful/src/features/repairs/repair_controller.dart';
+import 'package:carful/src/features/repairs/repair_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -122,7 +122,7 @@ class RepairEntryScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Mark as completed?'),
         content: const Text(
-          'Carbook will move this planned repair into your past repairs using the current date.',
+          'Carful will move this planned repair into your past repairs using the current date.',
         ),
         actions: [
           TextButton(
@@ -154,7 +154,7 @@ class RepairEntryScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Reopen repair?'),
         content: const Text(
-          'Carbook will move this completed repair back into your planned list.',
+          'Carful will move this completed repair back into your planned list.',
         ),
         actions: [
           TextButton(

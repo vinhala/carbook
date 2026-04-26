@@ -1,5 +1,5 @@
-name: carbook
-description: Carbook mobile app for tracking car profiles, mileage, and reminders.
+name: carful
+description: Carful mobile app for tracking car profiles, mileage, and reminders.
 publish_to: 'none'
 version: 1.0.0+1
 

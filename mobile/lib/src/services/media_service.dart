@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:carbook/src/domain/repair_attachment_kind.dart';
+import 'package:carful/src/domain/repair_attachment_kind.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;

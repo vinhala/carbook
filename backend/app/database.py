@@ -14,13 +14,13 @@ class Base(DeclarativeBase):
 def create_engine_and_session_factory(settings: Settings):
     connect_args = {}
     engine_kwargs = {}
-    if settings.carbook_database_url.startswith("sqlite"):
+    if settings.carful_database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
-        if ":memory:" in settings.carbook_database_url:
+        if ":memory:" in settings.carful_database_url:
             engine_kwargs["poolclass"] = StaticPool
 
     engine = create_engine(
-        settings.carbook_database_url,
+        settings.carful_database_url,
         connect_args=connect_args,
         **engine_kwargs,
     )

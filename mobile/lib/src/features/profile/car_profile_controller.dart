@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/car_profile_input.dart';
-import 'package:carbook/src/domain/car_profile_repository.dart';
-import 'package:carbook/src/domain/workshop_manual.dart';
-import 'package:carbook/src/domain/workshop_manual_input.dart';
-import 'package:carbook/src/domain/workshop_manual_repository.dart';
-import 'package:carbook/src/services/ai_backend_service.dart';
-import 'package:carbook/src/services/media_service.dart';
-import 'package:carbook/src/services/reminder_scheduler.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/car_profile_input.dart';
+import 'package:carful/src/domain/car_profile_repository.dart';
+import 'package:carful/src/domain/workshop_manual.dart';
+import 'package:carful/src/domain/workshop_manual_input.dart';
+import 'package:carful/src/domain/workshop_manual_repository.dart';
+import 'package:carful/src/services/ai_backend_service.dart';
+import 'package:carful/src/services/media_service.dart';
+import 'package:carful/src/services/reminder_scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final mediaServiceProvider = Provider<MediaService>(

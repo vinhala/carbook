@@ -1,6 +1,6 @@
-import 'package:carbook/src/domain/repair_attachment.dart';
-import 'package:carbook/src/domain/repair_entry.dart';
-import 'package:carbook/src/domain/repair_part.dart';
+import 'package:carful/src/domain/repair_attachment.dart';
+import 'package:carful/src/domain/repair_entry.dart';
+import 'package:carful/src/domain/repair_part.dart';
 
 class RepairEntryDetails {
   const RepairEntryDetails({

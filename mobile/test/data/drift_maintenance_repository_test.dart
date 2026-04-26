@@ -1,10 +1,10 @@
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/domain/car_profile_input.dart';
-import 'package:carbook/src/domain/maintenance_item_input.dart';
-import 'package:carbook/src/domain/maintenance_log_input.dart';
-import 'package:carbook/src/domain/maintenance_schedule_type.dart';
-import 'package:carbook/src/domain/maintenance_time_unit.dart';
-import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/domain/car_profile_input.dart';
+import 'package:carful/src/domain/maintenance_item_input.dart';
+import 'package:carful/src/domain/maintenance_log_input.dart';
+import 'package:carful/src/domain/maintenance_schedule_type.dart';
+import 'package:carful/src/domain/maintenance_time_unit.dart';
+import 'package:carful/src/domain/mileage_reminder_frequency.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -145,6 +145,93 @@ void main() {
       expect(profile!.currentMileage, 6200);
     },
   );
+
+  test('updates maintenance item description and schedule fields', () async {
+    final profileId = await carProfileRepository.createProfile(
+      CarProfileInput(
+        make: 'Mazda',
+        model: 'MX-5',
+        engine: '2.0L',
+        firstRegistrationMonth: DateTime(2016, 2),
+        vin: 'JM1234567890',
+        currentMileage: 6000,
+        photoPath: null,
+        reminderFrequency: MileageReminderFrequency.monthly,
+      ),
+    );
+
+    final itemId = await maintenanceRepository.createItem(
+      profileId,
+      const MaintenanceItemInput(
+        description: 'Oil change',
+        scheduleType: MaintenanceScheduleType.distance,
+        intervalValue: 5000,
+      ),
+    );
+
+    await maintenanceRepository.updateItem(
+      itemId,
+      const MaintenanceItemInput(
+        description: 'Cabin filter',
+        scheduleType: MaintenanceScheduleType.time,
+        intervalValue: 6,
+        timeUnit: MaintenanceTimeUnit.months,
+      ),
+    );
+
+    final details = await maintenanceRepository
+        .watchMaintenanceItem(itemId)
+        .first;
+    final entries = await maintenanceRepository.watchSchedule(profileId).first;
+
+    expect(details, isNotNull);
+    expect(details!.item.description, 'Cabin filter');
+    expect(details.item.scheduleType, MaintenanceScheduleType.time);
+    expect(details.item.intervalValue, 6);
+    expect(details.item.timeUnit, MaintenanceTimeUnit.months);
+    expect(entries.single.item.description, 'Cabin filter');
+  });
+
+  test('deletes maintenance item and cascades logged work', () async {
+    final profileId = await carProfileRepository.createProfile(
+      CarProfileInput(
+        make: 'Mazda',
+        model: 'MX-5',
+        engine: '2.0L',
+        firstRegistrationMonth: DateTime(2016, 2),
+        vin: 'JM1234567890',
+        currentMileage: 6000,
+        photoPath: null,
+        reminderFrequency: MileageReminderFrequency.monthly,
+      ),
+    );
+
+    final itemId = await maintenanceRepository.createItem(
+      profileId,
+      const MaintenanceItemInput(
+        description: 'Oil change',
+        scheduleType: MaintenanceScheduleType.distance,
+        intervalValue: 5000,
+      ),
+    );
+    await maintenanceRepository.addPerformedWork(
+      itemId,
+      MaintenanceLogInput(
+        performedAt: DateTime.now(),
+        mileage: 6200,
+        note: 'Full synthetic',
+      ),
+    );
+
+    await maintenanceRepository.deleteItem(itemId);
+
+    expect(await maintenanceRepository.watchSchedule(profileId).first, isEmpty);
+    expect(
+      await maintenanceRepository.watchMaintenanceItem(itemId).first,
+      isNull,
+    );
+    expect(await database.select(database.maintenanceLogs).get(), isEmpty);
+  });
 
   test(
     'does not lower the car profile mileage when logging older work',

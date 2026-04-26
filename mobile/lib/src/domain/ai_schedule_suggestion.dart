@@ -1,6 +1,6 @@
-import 'package:carbook/src/domain/maintenance_item_input.dart';
-import 'package:carbook/src/domain/maintenance_schedule_type.dart';
-import 'package:carbook/src/domain/maintenance_time_unit.dart';
+import 'package:carful/src/domain/maintenance_item_input.dart';
+import 'package:carful/src/domain/maintenance_schedule_type.dart';
+import 'package:carful/src/domain/maintenance_time_unit.dart';
 
 class AiScheduleSuggestion {
   const AiScheduleSuggestion({

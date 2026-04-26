@@ -1,9 +1,9 @@
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/domain/maintenance_item_details.dart';
-import 'package:carbook/src/domain/maintenance_item_input.dart';
-import 'package:carbook/src/domain/maintenance_repository.dart';
-import 'package:carbook/src/domain/maintenance_schedule_entry.dart';
-import 'package:carbook/src/domain/maintenance_log_input.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/domain/maintenance_item_details.dart';
+import 'package:carful/src/domain/maintenance_item_input.dart';
+import 'package:carful/src/domain/maintenance_repository.dart';
+import 'package:carful/src/domain/maintenance_schedule_entry.dart';
+import 'package:carful/src/domain/maintenance_log_input.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final maintenanceControllerProvider = Provider<MaintenanceController>(
@@ -31,6 +31,14 @@ class MaintenanceController {
 
   Future<int> createItem(int carProfileId, MaintenanceItemInput input) {
     return repository.createItem(carProfileId, input);
+  }
+
+  Future<void> updateItem(int itemId, MaintenanceItemInput input) {
+    return repository.updateItem(itemId, input);
+  }
+
+  Future<void> deleteItem(int itemId) {
+    return repository.deleteItem(itemId);
   }
 
   Future<void> addPerformedWork(int itemId, MaintenanceLogInput input) {

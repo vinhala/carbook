@@ -19,7 +19,7 @@ from app.schemas import (
     MaintenanceSuggestionsResponse,
     ManualResponse,
 )
-from app.services import CarbookBackendService
+from app.services import CarfulBackendService
 
 
 def create_app(
@@ -39,15 +39,15 @@ def create_app(
         model=settings.openai_model,
         moderation_model=settings.moderation_model,
     )
-    service = CarbookBackendService(
+    service = CarfulBackendService(
         ai_adapter=resolved_adapter,
         rate_limiter=rate_limiter,
     )
 
-    app = FastAPI(title="Carbook Backend", version="0.1.0")
+    app = FastAPI(title="Carful Backend", version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.carbook_allowed_origin],
+        allow_origins=[settings.carful_allowed_origin],
         allow_methods=["*"],
         allow_headers=["*"],
     )

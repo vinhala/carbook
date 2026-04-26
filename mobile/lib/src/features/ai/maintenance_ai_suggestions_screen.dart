@@ -1,6 +1,6 @@
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/ai_schedule_suggestion.dart';
-import 'package:carbook/src/features/ai/ai_assistant_controller.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/ai_schedule_suggestion.dart';
+import 'package:carful/src/features/ai/ai_assistant_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

@@ -1,14 +1,13 @@
 import 'dart:io';
 
-import 'package:carbook/src/domain/ai_schedule_suggestion.dart';
-import 'package:carbook/src/domain/assistant_message_source.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/maintenance_schedule_entry.dart';
-import 'package:carbook/src/domain/repair_entry.dart';
-import 'package:carbook/src/domain/workshop_manual.dart';
-import 'package:carbook/src/services/ai_backend_service.dart';
-import 'package:carbook/src/services/media_service.dart';
-import 'package:carbook/src/services/reminder_scheduler.dart';
+import 'package:carful/src/domain/ai_schedule_suggestion.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/maintenance_schedule_entry.dart';
+import 'package:carful/src/domain/repair_entry.dart';
+import 'package:carful/src/domain/workshop_manual.dart';
+import 'package:carful/src/services/ai_backend_service.dart';
+import 'package:carful/src/services/media_service.dart';
+import 'package:carful/src/services/reminder_scheduler.dart';
 
 class FakeMediaService implements MediaService {
   String? nextPickedPath;
@@ -77,6 +76,8 @@ class FakeAiBackendService implements AiBackendService {
   final List<String> deletedManualIds = [];
   final List<String> sentMessages = [];
   List<AiScheduleSuggestion> nextSuggestions = const [];
+  Future<void>? manualUploadBlocker;
+  Object? manualDeleteError;
   AssistantBackendResponse nextAssistantResponse =
       const AssistantBackendResponse(
         status: 'answered',
@@ -92,6 +93,10 @@ class FakeAiBackendService implements AiBackendService {
   @override
   Future<void> deleteManual(CarProfile profile, String backendManualId) async {
     deletedManualIds.add(backendManualId);
+    final error = manualDeleteError;
+    if (error != null) {
+      throw error;
+    }
   }
 
   @override
@@ -128,6 +133,10 @@ class FakeAiBackendService implements AiBackendService {
     CarProfile profile,
     File file,
   ) async {
+    final blocker = manualUploadBlocker;
+    if (blocker != null) {
+      await blocker;
+    }
     uploadedFiles.add(file);
     return BackendManualUploadResult(
       backendManualId: 'manual_${uploadedFiles.length}',

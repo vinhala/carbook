@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:carbook/src/domain/ai_schedule_suggestion.dart';
-import 'package:carbook/src/domain/assistant_message_source.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/maintenance_schedule_entry.dart';
-import 'package:carbook/src/domain/repair_entry.dart';
-import 'package:carbook/src/domain/workshop_manual.dart';
+import 'package:carful/src/domain/ai_schedule_suggestion.dart';
+import 'package:carful/src/domain/assistant_message_source.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/maintenance_schedule_entry.dart';
+import 'package:carful/src/domain/repair_entry.dart';
+import 'package:carful/src/domain/workshop_manual.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -75,8 +75,8 @@ class HttpAiBackendService implements AiBackendService {
     : _client = client ?? http.Client(),
       _baseUri = Uri.parse(
         const String.fromEnvironment(
-          'CARBOOK_API_BASE_URL',
-          defaultValue: 'http://localhost:8000',
+          'CARFUL_API_BASE_URL',
+          defaultValue: 'http://api.carful.localhost',
         ),
       );
 
@@ -133,7 +133,7 @@ class HttpAiBackendService implements AiBackendService {
           ..body = jsonEncode({'profile': _profileJson(profile)});
     final streamed = await _client.send(request);
     final response = await http.Response.fromStream(streamed);
-    if (response.statusCode != 204) {
+    if (response.statusCode != 204 && response.statusCode != 404) {
       _ensureSuccess(response);
     }
   }

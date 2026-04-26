@@ -1,4 +1,4 @@
-import 'package:carbook/src/domain/repair_entry.dart';
+import 'package:carful/src/domain/repair_entry.dart';
 
 class RepairOverview {
   const RepairOverview({required this.planned, required this.past});

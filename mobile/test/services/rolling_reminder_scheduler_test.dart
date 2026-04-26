@@ -1,6 +1,6 @@
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
-import 'package:carbook/src/services/reminder_scheduler.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/mileage_reminder_frequency.dart';
+import 'package:carful/src/services/reminder_scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/test_doubles.dart';

@@ -24,36 +24,91 @@ OFF_TOPIC_PATTERNS = {
         "leetcode",
         "wedding speech",
     ],
-    "generic_automotive": [
-        "best sports car",
-        "best suv",
-        "car under",
-        "buy a car",
-        "which truck should i buy",
+    "safety_blocked": [
+        "violent instructions",
+        "hotwire",
+        "steal a car",
+        "break into a car",
+        "bypass immobilizer",
+        "disable airbags",
+        "disable seatbelt",
+        "evade emissions",
+        "roll back odometer",
     ],
 }
 
 AUTOMOTIVE_KEYWORDS = {
-    "oil",
-    "coolant",
+    "accessory",
+    "accessories",
+    "airbag",
+    "alternator",
+    "automotive",
+    "battery",
     "brake",
-    "engine",
-    "transmission",
+    "brakes",
+    "car",
+    "cars",
+    "coolant",
+    "dealer",
+    "diagnose",
+    "diagnostic",
     "differential",
-    "torque",
-    "repair",
+    "dome",
+    "drivetrain",
+    "engine",
+    "filter",
+    "fluid",
+    "fluids",
+    "headlight",
+    "headlights",
+    "idle",
     "maintenance",
-    "mileage",
     "manual",
+    "mileage",
+    "modification",
+    "modifications",
+    "oil",
+    "part",
+    "parts",
+    "recall",
+    "recalls",
+    "repair",
+    "repairs",
     "service",
     "spark",
-    "filter",
-    "idle",
-    "battery",
     "suspension",
-    "fluid",
-    "diagnose",
+    "suv",
+    "tire",
+    "tires",
+    "torque",
+    "transmission",
+    "truck",
     "troubleshoot",
+    "vehicle",
+    "vehicles",
+}
+
+AUTOMOTIVE_LIGHTING_TERMS = {
+    "bulb",
+    "bulbs",
+    "lamp",
+    "lamps",
+    "light",
+    "lights",
+}
+
+AUTOMOTIVE_LIGHTING_CONTEXT = {
+    "brake",
+    "cabin",
+    "dome",
+    "fog",
+    "headlight",
+    "headlights",
+    "interior",
+    "signal",
+    "taillight",
+    "taillights",
+    "turn",
 }
 
 COMMON_MAKES = {
@@ -80,6 +135,7 @@ COMMON_MAKES = {
     "toyota",
     "volkswagen",
     "volvo",
+    "land rover"
 }
 
 
@@ -112,13 +168,13 @@ def deterministic_scope_check(
                 confidence=0.99,
             )
 
-    for pattern in OFF_TOPIC_PATTERNS["generic_automotive"]:
+    for pattern in OFF_TOPIC_PATTERNS["safety_blocked"]:
         if pattern in message:
             return ScopeClassification(
                 allowed=False,
-                reason_code="generic_automotive",
+                reason_code="safety_blocked",
                 normalized_scope=pattern,
-                confidence=0.95,
+                confidence=0.99,
             )
 
     car_terms = {
@@ -147,17 +203,6 @@ def deterministic_scope_check(
         strong_terms.update(_tokenize(manual.original_name))
 
     message_tokens = _tokenize(message)
-    other_make_mentions = (COMMON_MAKES & message_tokens) - {
-        payload.profile.make.lower()
-    }
-    if other_make_mentions:
-        return ScopeClassification(
-            allowed=False,
-            reason_code="unrelated_topic",
-            normalized_scope=f"other vehicle reference: {sorted(other_make_mentions)[0]}",
-            confidence=0.92,
-        )
-
     if (
         {"my", "car"} <= message_tokens
         or {"this", "car"} <= message_tokens
@@ -187,15 +232,37 @@ def deterministic_scope_check(
             confidence=0.76,
         )
 
-    if AUTOMOTIVE_KEYWORDS & message_tokens:
-        return None
+    if (
+        AUTOMOTIVE_LIGHTING_TERMS & message_tokens
+        and AUTOMOTIVE_LIGHTING_CONTEXT & message_tokens
+    ):
+        return ScopeClassification(
+            allowed=True,
+            reason_code="generic_automotive",
+            normalized_scope="automotive lighting",
+            confidence=0.86,
+        )
 
-    return ScopeClassification(
-        allowed=False,
-        reason_code="unrelated_topic",
-        normalized_scope="no active car linkage",
-        confidence=0.9,
-    )
+    if AUTOMOTIVE_KEYWORDS & message_tokens:
+        return ScopeClassification(
+            allowed=True,
+            reason_code="generic_automotive",
+            normalized_scope=(
+                "automotive keyword: "
+                f"{sorted(AUTOMOTIVE_KEYWORDS & message_tokens)[0]}"
+            ),
+            confidence=0.86,
+        )
+
+    if COMMON_MAKES & message_tokens:
+        return ScopeClassification(
+            allowed=True,
+            reason_code="generic_automotive",
+            normalized_scope=f"vehicle make: {sorted(COMMON_MAKES & message_tokens)[0]}",
+            confidence=0.84,
+        )
+
+    return None
 
 
 class InMemoryRateLimiter:

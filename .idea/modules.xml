@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/carbook.iml" filepath="$PROJECT_DIR$/carbook.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/carbook_android.iml" filepath="$PROJECT_DIR$/android/carbook_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/carful.iml" filepath="$PROJECT_DIR$/carful.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/carful_android.iml" filepath="$PROJECT_DIR$/android/carful_android.iml" />
     </modules>
   </component>
 </project>

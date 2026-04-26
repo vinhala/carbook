@@ -1,6 +1,6 @@
-import 'package:carbook/src/core/utils/date_time_utils.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
+import 'package:carful/src/core/utils/date_time_utils.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/mileage_reminder_frequency.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 

@@ -1,5 +1,5 @@
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/car_profile_input.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/car_profile_input.dart';
 
 abstract class CarProfileRepository {
   Stream<List<CarProfile>> watchProfiles();

@@ -1,4 +1,4 @@
-import 'package:carbook/src/domain/mileage_reminder_frequency.dart';
+import 'package:carful/src/domain/mileage_reminder_frequency.dart';
 
 class CarProfileInput {
   const CarProfileInput({

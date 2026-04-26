@@ -1,5 +1,5 @@
-import 'package:carbook/src/domain/assistant_message.dart';
-import 'package:carbook/src/domain/assistant_message_source.dart';
+import 'package:carful/src/domain/assistant_message.dart';
+import 'package:carful/src/domain/assistant_message_source.dart';
 
 abstract class AssistantRepository {
   Stream<List<AssistantMessage>> watchMessages(int carProfileId);

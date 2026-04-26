@@ -1,8 +1,8 @@
-import 'package:carbook/src/core/theme/app_theme.dart';
-import 'package:carbook/src/domain/maintenance_schedule_entry.dart';
-import 'package:carbook/src/features/maintenance/maintenance_controller.dart';
-import 'package:carbook/src/features/maintenance/maintenance_formatters.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/domain/maintenance_schedule_entry.dart';
+import 'package:carful/src/features/maintenance/maintenance_controller.dart';
+import 'package:carful/src/features/maintenance/maintenance_formatters.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,6 +28,18 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(profileAsync.asData?.value?.displayName ?? 'Maintenance'),
+        actions: [
+          IconButton(
+            key: const ValueKey('open-ai-schedule-generator-button'),
+            tooltip: hasManuals
+                ? 'Auto-generate schedule with AI'
+                : 'Upload manuals to enable AI schedule generation',
+            onPressed: hasManuals
+                ? () => context.push('/cars/$carId/maintenance/suggestions')
+                : null,
+            icon: const Icon(Icons.auto_awesome_rounded),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/cars/$carId/maintenance/new'),
@@ -50,24 +62,6 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text('Unable to load maintenance items.\n$error'),
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: FilledButton.icon(
-          key: const ValueKey('open-ai-schedule-generator-button'),
-          onPressed: hasManuals
-              ? () => context.push('/cars/$carId/maintenance/suggestions')
-              : null,
-          icon: const Icon(Icons.auto_awesome_rounded),
-          label: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              hasManuals
-                  ? 'Auto-Generate Schedule with AI'
-                  : 'Upload manuals from the profile to enable AI',
             ),
           ),
         ),

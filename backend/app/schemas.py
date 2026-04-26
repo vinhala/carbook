@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CarProfileSnapshot(BaseModel):
@@ -82,6 +82,8 @@ class AssistantSource(BaseModel):
     kind: Literal["manual", "web"]
     citation: str | None = None
     url: str | None = None
+    source_id: str | None = None
+    quote: str | None = None
 
 
 class AssistantMessageRequest(BaseModel):
@@ -117,6 +119,20 @@ class ScopeClassification(BaseModel):
     ]
     normalized_scope: str
     confidence: float = Field(ge=0, le=1)
+
+    @field_validator("reason_code", mode="before")
+    @classmethod
+    def normalize_reason_code(cls, value: object) -> object:
+        aliases = {
+            "vehicle_specific_maintenance": "about_active_car",
+            "vehicle_specific_maintenance_query": "about_active_car",
+            "vehicle_specific_query": "about_active_car",
+            "active_vehicle": "about_active_car",
+            "active_car": "about_active_car",
+        }
+        if isinstance(value, str):
+            return aliases.get(value, value)
+        return value
 
 
 class ChatAnswer(BaseModel):

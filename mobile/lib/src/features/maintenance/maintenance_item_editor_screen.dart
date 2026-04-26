@@ -1,16 +1,22 @@
-import 'package:carbook/src/domain/maintenance_item_input.dart';
-import 'package:carbook/src/domain/maintenance_schedule_type.dart';
-import 'package:carbook/src/domain/maintenance_time_unit.dart';
-import 'package:carbook/src/features/maintenance/maintenance_controller.dart';
-import 'package:carbook/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/domain/maintenance_item_details.dart';
+import 'package:carful/src/domain/maintenance_item_input.dart';
+import 'package:carful/src/domain/maintenance_schedule_type.dart';
+import 'package:carful/src/domain/maintenance_time_unit.dart';
+import 'package:carful/src/features/maintenance/maintenance_controller.dart';
+import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class MaintenanceItemEditorScreen extends ConsumerStatefulWidget {
-  const MaintenanceItemEditorScreen({super.key, required this.carId});
+  const MaintenanceItemEditorScreen({
+    super.key,
+    required this.carId,
+    this.itemId,
+  });
 
   final int? carId;
+  final int? itemId;
 
   @override
   ConsumerState<MaintenanceItemEditorScreen> createState() =>
@@ -25,6 +31,9 @@ class _MaintenanceItemEditorScreenState
   MaintenanceScheduleType _scheduleType = MaintenanceScheduleType.distance;
   MaintenanceTimeUnit _timeUnit = MaintenanceTimeUnit.months;
   bool _isSaving = false;
+  bool _didHydrate = false;
+
+  bool get _isEditing => widget.itemId != null;
 
   @override
   void initState() {
@@ -42,7 +51,7 @@ class _MaintenanceItemEditorScreenState
 
   @override
   Widget build(BuildContext context) {
-    if (widget.carId == null) {
+    if (widget.carId == null || (_isEditing && widget.itemId == null)) {
       return const Scaffold(
         body: Center(child: Text('Invalid maintenance item.')),
       );
@@ -56,8 +65,50 @@ class _MaintenanceItemEditorScreenState
             ?.mileageUnit ??
         'mi';
 
+    final detailsAsync = _isEditing
+        ? ref.watch(maintenanceItemProvider(widget.itemId!))
+        : const AsyncValue<MaintenanceItemDetails?>.data(null);
+
+    return detailsAsync.when(
+      data: (details) {
+        if (_isEditing && details == null) {
+          return const Scaffold(
+            body: Center(
+              child: Text('This maintenance item could not be found.'),
+            ),
+          );
+        }
+
+        if (details != null && !_didHydrate) {
+          _hydrate(details);
+        }
+
+        return _buildScaffold(context, mileageUnit, details);
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stackTrace) => Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text('Unable to load maintenance item.\n$error'),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    String mileageUnit,
+    MaintenanceItemDetails? details,
+  ) {
     return Scaffold(
-      appBar: AppBar(title: const Text('New Maintenance Item')),
+      appBar: AppBar(
+        title: Text(
+          _isEditing ? 'Edit Maintenance Item' : 'New Maintenance Item',
+        ),
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -92,27 +143,31 @@ class _MaintenanceItemEditorScreenState
                         ),
                       ),
                       const SizedBox(height: 16),
-                      SegmentedButton<MaintenanceScheduleType>(
-                        segments: const [
-                          ButtonSegment(
-                            value: MaintenanceScheduleType.distance,
-                            label: Text('Distance'),
-                            icon: Icon(Icons.route_outlined),
-                          ),
-                          ButtonSegment(
-                            value: MaintenanceScheduleType.time,
-                            label: Text('Time'),
-                            icon: Icon(Icons.schedule_rounded),
-                          ),
-                        ],
-                        selected: {_scheduleType},
-                        onSelectionChanged: _isSaving
-                            ? null
-                            : (selection) {
-                                setState(() {
-                                  _scheduleType = selection.first;
-                                });
-                              },
+                      SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<MaintenanceScheduleType>(
+                          expandedInsets: EdgeInsets.zero,
+                          segments: const [
+                            ButtonSegment(
+                              value: MaintenanceScheduleType.distance,
+                              label: Text('Distance'),
+                              icon: Icon(Icons.route_outlined),
+                            ),
+                            ButtonSegment(
+                              value: MaintenanceScheduleType.time,
+                              label: Text('Time'),
+                              icon: Icon(Icons.schedule_rounded),
+                            ),
+                          ],
+                          selected: {_scheduleType},
+                          onSelectionChanged: _isSaving
+                              ? null
+                              : (selection) {
+                                  setState(() {
+                                    _scheduleType = selection.first;
+                                  });
+                                },
+                        ),
                       ),
                       const SizedBox(height: 20),
                       TextFormField(
@@ -167,19 +222,46 @@ class _MaintenanceItemEditorScreenState
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: FilledButton(
-          onPressed: _isSaving ? null : _saveItem,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              _scheduleType == MaintenanceScheduleType.distance
-                  ? 'Create Item'
-                  : 'Create Time-Based Item',
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FilledButton(
+              onPressed: _isSaving ? null : () => _saveItem(details),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(_primaryActionLabel),
+              ),
             ),
-          ),
+            if (_isEditing) ...[
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: _isSaving || details == null
+                    ? null
+                    : () => _deleteItem(details),
+                child: const Text('Delete Maintenance Item'),
+              ),
+            ],
+          ],
         ),
       ),
     );
+  }
+
+  String get _primaryActionLabel {
+    if (_isEditing) {
+      return 'Save Changes';
+    }
+    return _scheduleType == MaintenanceScheduleType.distance
+        ? 'Create Item'
+        : 'Create Time-Based Item';
+  }
+
+  void _hydrate(MaintenanceItemDetails details) {
+    _didHydrate = true;
+    _descriptionController.text = details.item.description;
+    _intervalController.text = details.item.intervalValue.toString();
+    _scheduleType = details.item.scheduleType;
+    _timeUnit = details.item.timeUnit ?? MaintenanceTimeUnit.months;
   }
 
   String? _requiredValidator(String? value) {
@@ -202,26 +284,40 @@ class _MaintenanceItemEditorScreenState
     return null;
   }
 
-  Future<void> _saveItem() async {
+  Future<void> _saveItem(MaintenanceItemDetails? existingDetails) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     setState(() => _isSaving = true);
     final controller = ref.read(maintenanceControllerProvider);
+    final input = MaintenanceItemInput(
+      description: _descriptionController.text,
+      scheduleType: _scheduleType,
+      intervalValue: int.parse(_intervalController.text),
+      timeUnit: _scheduleType == MaintenanceScheduleType.time
+          ? _timeUnit
+          : null,
+    );
 
     try {
-      await controller.createItem(
-        widget.carId!,
-        MaintenanceItemInput(
-          description: _descriptionController.text,
-          scheduleType: _scheduleType,
-          intervalValue: int.parse(_intervalController.text),
-          timeUnit: _scheduleType == MaintenanceScheduleType.time
-              ? _timeUnit
-              : null,
-        ),
-      );
+      if (_isEditing) {
+        await controller.updateItem(widget.itemId!, input);
+
+        if (!mounted) {
+          return;
+        }
+
+        final carId = existingDetails?.item.carProfileId ?? widget.carId!;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/cars/$carId/maintenance/${widget.itemId}');
+        }
+        return;
+      }
+
+      await controller.createItem(widget.carId!, input);
 
       if (!mounted) {
         return;
@@ -237,7 +333,50 @@ class _MaintenanceItemEditorScreenState
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to create maintenance item.\n$error')),
+        SnackBar(content: Text('Unable to save maintenance item.\n$error')),
+      );
+      setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _deleteItem(MaintenanceItemDetails details) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete maintenance item?'),
+        content: const Text(
+          'This will remove the item and its logged service history.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      await ref.read(maintenanceControllerProvider).deleteItem(details.item.id);
+      if (!mounted) {
+        return;
+      }
+      context.go('/cars/${details.item.carProfileId}/maintenance');
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Unable to delete maintenance item.\n$error')),
       );
       setState(() => _isSaving = false);
     }

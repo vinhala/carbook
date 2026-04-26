@@ -1,4 +1,4 @@
-import 'package:carbook/src/domain/assistant_message_source.dart';
+import 'package:carful/src/domain/assistant_message_source.dart';
 
 enum AssistantMessageRole { user, assistant }
 

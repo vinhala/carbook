@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/domain/assistant_message.dart';
-import 'package:carbook/src/domain/assistant_message_source.dart';
-import 'package:carbook/src/domain/assistant_repository.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/domain/assistant_message.dart';
+import 'package:carful/src/domain/assistant_message_source.dart';
+import 'package:carful/src/domain/assistant_repository.dart';
 import 'package:drift/drift.dart';
 
 class DriftAssistantRepository implements AssistantRepository {

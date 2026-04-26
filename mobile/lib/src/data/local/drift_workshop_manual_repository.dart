@@ -1,7 +1,7 @@
-import 'package:carbook/src/data/local/app_database.dart';
-import 'package:carbook/src/domain/workshop_manual.dart';
-import 'package:carbook/src/domain/workshop_manual_input.dart';
-import 'package:carbook/src/domain/workshop_manual_repository.dart';
+import 'package:carful/src/data/local/app_database.dart';
+import 'package:carful/src/domain/workshop_manual.dart';
+import 'package:carful/src/domain/workshop_manual_input.dart';
+import 'package:carful/src/domain/workshop_manual_repository.dart';
 import 'package:drift/drift.dart';
 
 class DriftWorkshopManualRepository implements WorkshopManualRepository {

@@ -33,7 +33,7 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-class CarbookBackendService:
+class CarfulBackendService:
     def __init__(
         self,
         ai_adapter: OpenAIAdapter,
@@ -158,16 +158,6 @@ class CarbookBackendService:
         if not car.vector_store_id:
             raise HTTPException(status_code=400, detail="Upload workshop manuals first")
 
-        if self._ai_adapter.moderate_text(payload.message):
-            decision = ScopeClassification(
-                allowed=False,
-                reason_code="safety_blocked",
-                normalized_scope="moderation blocked",
-                confidence=1,
-            )
-            self._log_audit(db, car.id, payload.client_id, payload.message, decision)
-            return self._build_rejection_response(decision, payload.conversation_id)
-
         decision = deterministic_scope_check(payload)
         if decision is None:
             decision = self._ai_adapter.classify_scope(payload)
@@ -255,7 +245,7 @@ class CarbookBackendService:
             conversation_id=conversation_id,
             message_id=f"reject_{uuid.uuid4().hex[:12]}",
             content=(
-                "Carbook AI can only answer questions about this vehicle and its "
+                "Carful AI can only answer questions about this vehicle and its "
                 "maintenance, repairs, manuals, or troubleshooting."
             ),
             rejection_reason_code=decision.reason_code,

@@ -1,5 +1,5 @@
-# carbook
-Monorepo for the Carbook mobile app and its minimal AI relay backend.
+# Carful
+Monorepo for the Carful mobile app and its minimal AI relay backend.
 
 ## Layout
 
@@ -30,14 +30,14 @@ Required backend environment variables:
 
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL` (optional, defaults to `gpt-5.4-mini`)
-- `CARBOOK_DATABASE_URL` (optional, defaults to local SQLite)
-- `CARBOOK_ALLOWED_ORIGIN` (optional, defaults to `*`)
+- `CARFUL_DATABASE_URL` (optional, defaults to local SQLite)
+- `CARFUL_ALLOWED_ORIGIN` (optional, defaults to `*`)
 
 The Flutter app can target the backend with:
 
 ```bash
 cd mobile
-flutter run --dart-define=CARBOOK_API_BASE_URL=http://localhost:8000
+flutter run --dart-define=CARFUL_API_BASE_URL=http://api.carful.localhost
 ```
 
 ## GitHub Actions

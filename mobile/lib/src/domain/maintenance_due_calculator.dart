@@ -1,9 +1,9 @@
-import 'package:carbook/src/core/utils/date_time_utils.dart';
-import 'package:carbook/src/domain/car_profile.dart';
-import 'package:carbook/src/domain/maintenance_due_status.dart';
-import 'package:carbook/src/domain/maintenance_item.dart';
-import 'package:carbook/src/domain/maintenance_log_entry.dart';
-import 'package:carbook/src/domain/maintenance_time_unit.dart';
+import 'package:carful/src/core/utils/date_time_utils.dart';
+import 'package:carful/src/domain/car_profile.dart';
+import 'package:carful/src/domain/maintenance_due_status.dart';
+import 'package:carful/src/domain/maintenance_item.dart';
+import 'package:carful/src/domain/maintenance_log_entry.dart';
+import 'package:carful/src/domain/maintenance_time_unit.dart';
 
 MaintenanceDueStatus buildMaintenanceDueStatus({
   required CarProfile profile,

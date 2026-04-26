@@ -1,5 +1,5 @@
-import 'package:carbook/src/domain/maintenance_due_status.dart';
-import 'package:carbook/src/domain/maintenance_item.dart';
+import 'package:carful/src/domain/maintenance_due_status.dart';
+import 'package:carful/src/domain/maintenance_item.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

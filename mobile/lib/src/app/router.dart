@@ -1,15 +1,15 @@
-import 'package:carbook/src/features/ai/ai_assistant_screen.dart';
-import 'package:carbook/src/features/ai/maintenance_ai_suggestions_screen.dart';
-import 'package:carbook/src/features/garage/garage_screen.dart';
-import 'package:carbook/src/features/maintenance/maintenance_item_editor_screen.dart';
-import 'package:carbook/src/features/maintenance/maintenance_item_screen.dart';
-import 'package:carbook/src/features/maintenance/maintenance_schedule_screen.dart';
-import 'package:carbook/src/features/profile/car_profile_editor_screen.dart';
-import 'package:carbook/src/features/profile/car_profile_screen.dart';
-import 'package:carbook/src/features/repairs/repair_entry_editor_screen.dart';
-import 'package:carbook/src/features/repairs/repair_entry_screen.dart';
-import 'package:carbook/src/features/repairs/repair_overview_screen.dart';
-import 'package:carbook/src/domain/repair_status.dart';
+import 'package:carful/src/features/ai/ai_assistant_screen.dart';
+import 'package:carful/src/features/ai/maintenance_ai_suggestions_screen.dart';
+import 'package:carful/src/features/garage/garage_screen.dart';
+import 'package:carful/src/features/maintenance/maintenance_item_editor_screen.dart';
+import 'package:carful/src/features/maintenance/maintenance_item_screen.dart';
+import 'package:carful/src/features/maintenance/maintenance_schedule_screen.dart';
+import 'package:carful/src/features/profile/car_profile_editor_screen.dart';
+import 'package:carful/src/features/profile/car_profile_screen.dart';
+import 'package:carful/src/features/repairs/repair_entry_editor_screen.dart';
+import 'package:carful/src/features/repairs/repair_entry_screen.dart';
+import 'package:carful/src/features/repairs/repair_overview_screen.dart';
+import 'package:carful/src/domain/repair_status.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
@@ -56,6 +56,13 @@ class AppRouter {
           builder: (context, state) => MaintenanceItemScreen(
             itemId: int.tryParse(state.pathParameters['itemId'] ?? ''),
             openLogComposer: state.uri.queryParameters['log'] == 'true',
+          ),
+        ),
+        GoRoute(
+          path: '/cars/:carId/maintenance/:itemId/edit',
+          builder: (context, state) => MaintenanceItemEditorScreen(
+            carId: int.tryParse(state.pathParameters['carId'] ?? ''),
+            itemId: int.tryParse(state.pathParameters['itemId'] ?? ''),
           ),
         ),
         GoRoute(

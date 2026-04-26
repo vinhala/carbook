@@ -1,5 +1,5 @@
 ---
-name: Carbook Visual Identity
+name: Carful Visual Identity
 colors:
   surface: '#fcf9f2'
   surface-dim: '#dcdad3'

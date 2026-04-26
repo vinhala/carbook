@@ -1,5 +1,5 @@
-import 'package:carbook/src/domain/workshop_manual.dart';
-import 'package:carbook/src/domain/workshop_manual_input.dart';
+import 'package:carful/src/domain/workshop_manual.dart';
+import 'package:carful/src/domain/workshop_manual_input.dart';
 
 abstract class WorkshopManualRepository {
   Stream<List<WorkshopManual>> watchManuals(int carProfileId);

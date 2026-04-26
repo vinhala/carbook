@@ -1,14 +1,14 @@
-import 'package:carbook/src/app/router.dart';
-import 'package:carbook/src/core/theme/app_theme.dart';
+import 'package:carful/src/app/router.dart';
+import 'package:carful/src/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
-class CarbookApp extends StatelessWidget {
-  const CarbookApp({super.key});
+class CarfulApp extends StatelessWidget {
+  const CarfulApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Carbook',
+      title: 'Carful',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       routerConfig: AppRouter.router,

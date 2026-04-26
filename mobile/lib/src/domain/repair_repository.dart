@@ -1,7 +1,7 @@
-import 'package:carbook/src/domain/repair_attachment_input.dart';
-import 'package:carbook/src/domain/repair_entry_details.dart';
-import 'package:carbook/src/domain/repair_entry_input.dart';
-import 'package:carbook/src/domain/repair_overview.dart';
+import 'package:carful/src/domain/repair_attachment_input.dart';
+import 'package:carful/src/domain/repair_entry_details.dart';
+import 'package:carful/src/domain/repair_entry_input.dart';
+import 'package:carful/src/domain/repair_overview.dart';
 
 abstract class RepairRepository {
   Stream<RepairOverview> watchOverview(

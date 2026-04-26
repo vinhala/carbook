@@ -3,20 +3,5 @@
         "path":"backend",
         "image":"backend",
         "service":"api"
-    },
-    {
-        "path":"backend",
-        "image":"backend",
-        "service":"worker"
-    },
-    {
-        "path":"backend",
-        "image":"backend",
-        "service":"scheduler"
-    },
-    {
-        "path":"frontend",
-        "image":"frontend",
-        "service":"frontend"
     }
 ]

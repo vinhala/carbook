@@ -4,7 +4,11 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.main import create_app
-from app.openai_client import FakeOpenAIAdapter
+from app.openai_client import (
+    FakeOpenAIAdapter,
+    _extract_response_sources,
+    _extract_response_text,
+)
 from app.schemas import (
     AssistantMessageRequest,
     AssistantSource,
@@ -65,7 +69,7 @@ def build_chat_payload(message: str, conversation_id: str | None = None) -> dict
 def create_client():
     settings = Settings(
         openai_api_key="test",
-        carbook_database_url="sqlite+pysqlite:///:memory:",
+        carful_database_url="sqlite+pysqlite:///:memory:",
         assistant_rate_limit=50,
     )
     adapter = FakeOpenAIAdapter()
@@ -158,7 +162,7 @@ def test_chat_rejects_off_topic_without_main_response_call():
     assert adapter.chat_calls == 0
 
 
-def test_chat_rejects_other_vehicle_reference():
+def test_chat_accepts_other_vehicle_reference():
     client, adapter = create_client()
     ensure_car_and_manual(client)
 
@@ -168,8 +172,8 @@ def test_chat_rejects_other_vehicle_reference():
     )
 
     assert response.status_code == 200
-    assert response.json()["status"] == "rejected"
-    assert adapter.chat_calls == 0
+    assert response.json()["status"] == "answered"
+    assert adapter.chat_calls == 1
 
 
 def test_chat_blocks_moderated_content():
@@ -185,27 +189,71 @@ def test_chat_blocks_moderated_content():
     assert response.status_code == 200
     assert response.json()["rejection_reason_code"] == "safety_blocked"
     assert adapter.chat_calls == 0
+    assert adapter.moderation_calls == []
 
 
-def test_chat_uses_classifier_for_ambiguous_message():
+def test_chat_allows_interior_light_bulb_lookup_even_if_moderation_flags():
+    client, adapter = create_client()
+    ensure_car_and_manual(client)
+    adapter.flag_next_moderation = True
+
+    response = client.post(
+        "/cars/car_sync_1/assistant/messages",
+        json=build_chat_payload("What light bulbs are used in the interior"),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "answered"
+    assert adapter.chat_calls == 1
+    assert adapter.moderation_calls == []
+
+
+def test_chat_accepts_generic_automotive_question():
+    client, adapter = create_client()
+    ensure_car_and_manual(client)
+
+    response = client.post(
+        "/cars/car_sync_1/assistant/messages",
+        json=build_chat_payload("What is the best SUV under $30000?"),
+    )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "answered"
+    assert adapter.chat_calls == 1
+
+
+def test_chat_uses_classifier_for_unmatched_message():
     client, adapter = create_client()
     ensure_car_and_manual(client)
     adapter.next_scope = ScopeClassification(
-        allowed=False,
+        allowed=True,
         reason_code="generic_automotive",
-        normalized_scope="generic oil advice",
+        normalized_scope="automotive appearance protection",
         confidence=0.81,
     )
 
     response = client.post(
         "/cars/car_sync_1/assistant/messages",
-        json=build_chat_payload("What oil should I use?"),
+        json=build_chat_payload("Is ceramic coating worth it?"),
     )
 
     assert response.status_code == 200
-    assert response.json()["status"] == "rejected"
+    assert response.json()["status"] == "answered"
     assert adapter.scope_calls == 1
-    assert adapter.chat_calls == 0
+    assert adapter.chat_calls == 1
+
+
+def test_scope_classification_normalizes_openai_reason_code_alias():
+    decision = ScopeClassification.model_validate(
+        {
+            "allowed": True,
+            "reason_code": "vehicle_specific_maintenance_query",
+            "normalized_scope": "active vehicle maintenance",
+            "confidence": 0.83,
+        }
+    )
+
+    assert decision.reason_code == "about_active_car"
 
 
 def test_chat_accepts_in_scope_question_and_persists_conversation():
@@ -220,6 +268,8 @@ def test_chat_accepts_in_scope_question_and_persists_conversation():
                 label="Tacoma Manual",
                 kind="manual",
                 citation="Manual Pg. 142",
+                source_id="file_manual",
+                quote="Use SAE 0W-20",
             )
         ],
         used_file_search=True,
@@ -236,4 +286,129 @@ def test_chat_accepts_in_scope_question_and_persists_conversation():
     assert body["status"] == "answered"
     assert body["conversation_id"] == "conv_live"
     assert body["sources"][0]["kind"] == "manual"
+    assert body["sources"][0]["source_id"] == "file_manual"
+    assert body["sources"][0]["quote"] == "Use SAE 0W-20"
     assert adapter.chat_calls == 1
+
+
+def test_response_parser_removes_raw_citation_markers():
+    response = {
+        "output_text": "Use SAE 0W-20. Ofilecite ?turnlfile3 Oturnlfile5?",
+        "output": [
+            {
+                "type": "message",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": "Use SAE 0W-20. \ue200cite\ue202turn0file0\ue201",
+                        "annotations": [
+                            {
+                                "type": "file_citation",
+                                "text": "\ue200cite\ue202turn0file0\ue201",
+                                "file_id": "file_manual",
+                                "filename": "Tacoma Manual.pdf",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+    assert _extract_response_text(response) == "Use SAE 0W-20."
+
+
+def test_response_parser_converts_annotations_to_sources():
+    response = {
+        "output": [
+            {
+                "type": "message",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": "Use SAE 0W-20.",
+                        "annotations": [
+                            {
+                                "type": "file_citation",
+                                "file_id": "file_manual",
+                                "filename": "Tacoma Manual.pdf",
+                                "quote": "Recommended engine oil",
+                            },
+                            {
+                                "type": "file_citation",
+                                "file_id": "file_manual",
+                                "filename": "Tacoma Manual.pdf",
+                                "quote": "Recommended engine oil",
+                            },
+                            {
+                                "type": "url_citation",
+                                "url": "https://example.com/oil",
+                                "title": "Oil Reference",
+                                "text": "Oil Reference",
+                            },
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+
+    sources = _extract_response_sources(response)
+
+    assert len(sources) == 2
+    assert sources[0] == AssistantSource(
+        label="Tacoma Manual.pdf",
+        kind="manual",
+        source_id="file_manual",
+        quote="Recommended engine oil",
+    )
+    assert sources[1] == AssistantSource(
+        label="Oil Reference",
+        kind="web",
+        url="https://example.com/oil",
+        source_id="https://example.com/oil",
+    )
+
+
+def test_response_parser_falls_back_to_search_results_without_annotations():
+    response = {
+        "output": [
+            {
+                "type": "message",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "text": "Use the manual recommendation.",
+                        "annotations": [],
+                    }
+                ],
+            },
+            {
+                "type": "file_search_call",
+                "results": [
+                    {
+                        "file_id": "file_manual",
+                        "filename": "Tacoma Manual.pdf",
+                        "content": [{"text": "Oil viscosity chart"}],
+                    }
+                ],
+            },
+            {
+                "type": "web_search_call",
+                "action": {
+                    "sources": [
+                        {
+                            "title": "Toyota service info",
+                            "url": "https://example.com/service",
+                        }
+                    ]
+                },
+            },
+        ],
+    }
+
+    sources = _extract_response_sources(response)
+
+    assert [source.kind for source in sources] == ["manual", "web"]
+    assert sources[0].quote == "Oil viscosity chart"
+    assert sources[1].url == "https://example.com/service"

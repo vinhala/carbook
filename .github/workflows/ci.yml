@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+env:
+  CARFUL_API_BASE_URL: https://api.carful.diy
+
 jobs:
   mobile-test:
     runs-on: ubuntu-latest
@@ -34,7 +37,7 @@ jobs:
 
       - name: Run test suite
         working-directory: mobile
-        run: flutter test test
+        run: flutter test test --dart-define=CARFUL_API_BASE_URL="${CARFUL_API_BASE_URL}"
 
   backend-test:
     runs-on: ubuntu-latest
