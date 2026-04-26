@@ -5,6 +5,7 @@ on:
     tags:
       - "v*"
       - "preview*"
+      - "draft*"
 
 permissions:
   contents: read
@@ -18,6 +19,7 @@ jobs:
     outputs:
       build_number: ${{ steps.context.outputs.build_number }}
       environment_name: ${{ steps.context.outputs.environment_name }}
+      play_release_status: ${{ steps.context.outputs.play_release_status }}
       play_track: ${{ steps.context.outputs.play_track }}
       release_channel: ${{ steps.context.outputs.release_channel }}
       version: ${{ steps.context.outputs.version }}
@@ -36,15 +38,23 @@ jobs:
           if [[ "$tag" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
             release_channel="production"
             environment_name="production"
+            play_release_status="completed"
             play_track="production"
             version="${BASH_REMATCH[1]}"
           elif [[ "$tag" =~ ^preview-?([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
             release_channel="preview"
             environment_name="preview"
+            play_release_status="completed"
+            play_track="internal"
+            version="${BASH_REMATCH[1]}"
+          elif [[ "$tag" =~ ^draft-?([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            release_channel="draft"
+            environment_name="preview"
+            play_release_status="draft"
             play_track="internal"
             version="${BASH_REMATCH[1]}"
           else
-            echo "::error title=Unsupported tag::Use vX.Y.Z, previewX.Y.Z, or preview-X.Y.Z tags."
+            echo "::error title=Unsupported tag::Use vX.Y.Z, previewX.Y.Z, preview-X.Y.Z, draftX.Y.Z, or draft-X.Y.Z tags."
             exit 1
           fi
 
@@ -58,6 +68,7 @@ jobs:
           {
             echo "build_number=${GITHUB_RUN_NUMBER}"
             echo "environment_name=${environment_name}"
+            echo "play_release_status=${play_release_status}"
             echo "play_track=${play_track}"
             echo "release_channel=${release_channel}"
             echo "version=${version}"
@@ -151,6 +162,7 @@ jobs:
           ANDROID_AAB_PATH: ${{ github.workspace }}/mobile/build/app/outputs/bundle/release/app-release.aab
           ANDROID_PACKAGE_NAME: diy.carful
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_RELEASE_STATUS: ${{ needs.prepare.outputs.play_release_status }}
           PLAY_TRACK: ${{ needs.prepare.outputs.play_track }}
         run: bundle exec fastlane android upload_to_play
 
