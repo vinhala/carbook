@@ -88,6 +88,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+          ruby-version: "3.3"
 
       - name: Validate Android secrets
         shell: bash
@@ -148,8 +149,8 @@ jobs:
         run: bundle exec fastlane android upload_to_play
 
   ios:
+    runs-on: none
     needs: prepare
-    runs-on: macos-latest
     environment: ${{ needs.prepare.outputs.environment_name }}
 
     steps:
@@ -166,6 +167,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+          ruby-version: "3.3"
 
       - name: Validate iOS secrets
         shell: bash
