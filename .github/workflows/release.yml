@@ -142,7 +142,7 @@ jobs:
         working-directory: mobile
         env:
           ANDROID_AAB_PATH: ${{ github.workspace }}/mobile/build/app/outputs/bundle/release/app-release.aab
-          ANDROID_PACKAGE_NAME: com.vinhala.carful
+          ANDROID_PACKAGE_NAME: diy.carful
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           PLAY_TRACK: ${{ needs.prepare.outputs.play_track }}
         run: bundle exec fastlane android upload_to_play
@@ -251,7 +251,7 @@ jobs:
             <string>app-store</string>
             <key>provisioningProfiles</key>
             <dict>
-              <key>com.vinhala.carful</key>
+              <key>diy.carful</key>
               <string>${IOS_PROVISIONING_PROFILE_NAME}</string>
             </dict>
             <key>signingStyle</key>
@@ -293,6 +293,6 @@ jobs:
           APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
           APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
           APPSTORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY }}
-          IOS_BUNDLE_ID: com.vinhala.carful
+          IOS_BUNDLE_ID: diy.carful
           RELEASE_CHANNEL: ${{ needs.prepare.outputs.release_channel }}
         run: bundle exec fastlane ios upload_to_store

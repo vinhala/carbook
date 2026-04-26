@@ -4,6 +4,10 @@ ENV_FILE := .env
 # Define the default stack name
 STACK_NAME := carful
 GITHUB_REPOSITORY_OWNER := carful-diy
+MOBILE_DIR := ../mobile
+ANDROID_AAB_PATH ?= $(abspath $(MOBILE_DIR)/build/app/outputs/bundle/release/app-release.aab)
+ANDROID_PACKAGE_NAME ?= diy.carful
+PLAY_TRACK ?= internal
 
 # Check if the .env file exists, and include it if it does
 ifneq ("$(wildcard $(ENV_FILE))","")
@@ -28,6 +32,9 @@ deploy-local:
 # deploy all services with databases and production urls and env
 deploy-prod:
 	docker stack deploy -c docker-compose.network-prod.yml -c docker-compose.app.yml ${STACK_NAME} --detach=false --resolve-image=always
+
+submit-mobile-play-store:
+	cd $(MOBILE_DIR) && ANDROID_AAB_PATH="$(ANDROID_AAB_PATH)" ANDROID_PACKAGE_NAME="$(ANDROID_PACKAGE_NAME)" PLAY_TRACK="$(PLAY_TRACK)" fastlane android upload_to_play
 
 # down all services
 down:

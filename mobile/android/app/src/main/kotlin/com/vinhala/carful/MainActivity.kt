@@ -1,4 +1,4 @@
-package com.vinhala.carful
+package diy.carful
 
 import io.flutter.embedding.android.FlutterActivity
 

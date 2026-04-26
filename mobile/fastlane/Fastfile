@@ -4,7 +4,7 @@ platform :android do
   desc "Upload the generated Android app bundle to Google Play"
   lane :upload_to_play do
     upload_to_play_store(
-      package_name: ENV.fetch("ANDROID_PACKAGE_NAME", "com.vinhala.carful"),
+      package_name: ENV.fetch("ANDROID_PACKAGE_NAME", "diy.carful"),
       json_key_data: ENV.fetch("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"),
       track: ENV.fetch("PLAY_TRACK"),
       aab: ENV.fetch("ANDROID_AAB_PATH"),
@@ -28,7 +28,7 @@ platform :ios do
 
     release_channel = ENV.fetch("RELEASE_CHANNEL")
     ipa_path = ENV.fetch("IOS_IPA_PATH")
-    bundle_id = ENV.fetch("IOS_BUNDLE_ID", "com.vinhala.carful")
+    bundle_id = ENV.fetch("IOS_BUNDLE_ID", "diy.carful")
 
     if release_channel == "production"
       deliver(
