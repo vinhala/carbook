@@ -149,7 +149,8 @@ jobs:
         run: bundle exec fastlane android upload_to_play
 
   ios:
-    runs-on: none
+    if: ${{ false }} # Temporarily disabled
+    runs-on: macos-latest
     needs: prepare
     environment: ${{ needs.prepare.outputs.environment_name }}
 
