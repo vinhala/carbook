@@ -31,3 +31,6 @@ services:
   api:
     labels:
       caddy: http://api.carful.localhost
+  landing:
+    labels:
+      caddy: http://carful.localhost

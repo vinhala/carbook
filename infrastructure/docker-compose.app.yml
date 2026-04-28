@@ -14,3 +14,16 @@ services:
         order: start-first
     labels:
       caddy.reverse_proxy: "{{upstreams 80}}"
+
+  landing:
+    image: ghcr.io/carful-diy/landing:latest
+    networks:
+      - caddy-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+    labels:
+      caddy.reverse_proxy: "{{upstreams 80}}"

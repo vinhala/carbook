@@ -3,5 +3,10 @@
         "path":"backend",
         "image":"backend",
         "service":"api"
+    },
+    {
+        "path":"landing",
+        "image":"landing",
+        "service":"landing"
     }
 ]

@@ -25,6 +25,7 @@ init:
 # build local images
 build-local:
 	docker build -t ghcr.io/$(GITHUB_REPOSITORY_OWNER)/backend:latest ../backend
+	docker build -t ghcr.io/$(GITHUB_REPOSITORY_OWNER)/landing:latest ../landing
 
 deploy-local:
 	docker stack deploy -c docker-compose.network-local.yml -c docker-compose.app.yml ${STACK_NAME} --detach=false --resolve-image=always

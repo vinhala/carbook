@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Carbook - The Ultimate Digital Garage</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#fcf9f2",
+                        "tertiary-fixed": "#f5decf",
+                        "outline-variant": "#c4c8bf",
+                        "on-tertiary-fixed-variant": "#524439",
+                        "on-error": "#ffffff",
+                        "tertiary": "#69594d",
+                        "surface-tint": "#526350",
+                        "surface-bright": "#fcf9f2",
+                        "surface-container-highest": "#e5e2db",
+                        "inverse-surface": "#31312c",
+                        "tertiary-fixed-dim": "#d8c3b4",
+                        "secondary-fixed-dim": "#eec063",
+                        "primary-fixed-dim": "#baccb4",
+                        "surface-dim": "#dcdad3",
+                        "on-secondary-fixed-variant": "#5d4200",
+                        "outline": "#747871",
+                        "on-background": "#1c1c18",
+                        "primary-fixed": "#d6e8cf",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e5e2db",
+                        "secondary": "#7b5900",
+                        "on-primary-fixed-variant": "#3b4b39",
+                        "tertiary-container": "#827164",
+                        "surface-container-high": "#ebe8e1",
+                        "surface-container": "#f1eee7",
+                        "background": "#fcf9f2",
+                        "on-secondary-fixed": "#261900",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#f7fff1",
+                        "on-surface-variant": "#444842",
+                        "secondary-container": "#fecd6f",
+                        "inverse-primary": "#baccb4",
+                        "primary-container": "#687965",
+                        "on-tertiary-fixed": "#241910",
+                        "on-tertiary-container": "#fffbff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdea4",
+                        "on-primary-fixed": "#111f10",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-low": "#f6f3ec",
+                        "on-secondary-container": "#775600",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f3f0e9",
+                        "on-surface": "#1c1c18",
+                        "primary": "#50604d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "sm": "8px",
+                        "base": "8px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "margin-tablet": "32px",
+                        "xs": "4px",
+                        "gutter": "16px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "title-lg": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-sm": ["11px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-lg": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .shadow-ambient {
+            box-shadow: 0 4px 24px -4px rgba(82, 68, 57, 0.08), 0 2px 8px -2px rgba(82, 68, 57, 0.04);
+        }
+        .shadow-ambient-hover {
+            box-shadow: 0 12px 32px -8px rgba(82, 68, 57, 0.12), 0 4px 12px -4px rgba(82, 68, 57, 0.06);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-lg antialiased">
+<!-- TopAppBar -->
+<header class="bg-stone-50/90 dark:bg-stone-950/90 backdrop-blur-md fixed top-0 w-full z-50 border-b border-stone-200 dark:border-stone-800 shadow-sm shadow-stone-900/5">
+<div class="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-emerald-800 dark:text-emerald-400" data-icon="directions_car">directions_car</span>
+<span class="font-['Plus_Jakarta_Sans'] text-2xl font-extrabold tracking-tighter text-emerald-900 dark:text-emerald-100 antialiased">Carbook</span>
+</div>
+<button class="bg-primary text-on-primary font-label-lg text-label-lg px-6 py-2.5 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95 duration-150 border border-transparent inner-border-[1px] inner-border-primary-fixed-dim shadow-ambient">
+                Get the App
+            </button>
+</div>
+</header>
+<main class="pt-[88px]">
+<!-- Hero Section -->
+<section class="relative overflow-hidden px-6 lg:px-8 py-20 lg:py-32 max-w-7xl mx-auto">
+<div class="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+<div class="max-w-2xl">
+<h1 class="font-display-lg text-display-lg text-on-background mb-6">
+                        The Ultimate Digital Garage for the Home Mechanic
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-8 max-w-xl">
+                        Track maintenance schedules, log repairs, plan projects, and consult your personal AI mechanic. Built rugged and clean to keep your vehicle running for the long haul.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="flex items-center justify-center gap-2 bg-primary text-on-primary font-title-lg text-title-lg px-8 py-4 rounded-xl hover:bg-primary-container transition-colors shadow-ambient border border-[#3b4b39]/20">
+<span class="material-symbols-outlined" data-icon="apple">ios</span>
+                            App Store
+                        </button>
+<button class="flex items-center justify-center gap-2 bg-surface-container-highest text-on-surface font-title-lg text-title-lg px-8 py-4 rounded-xl hover:bg-surface-dim transition-colors shadow-ambient border border-outline-variant">
+<span class="material-symbols-outlined" data-icon="play_arrow">play_arrow</span>
+                            Google Play
+                        </button>
+</div>
+</div>
+<!-- Hero Visual: Glassmorphism App Mockup -->
+<div class="relative w-full aspect-[4/5] lg:aspect-square flex items-center justify-center">
+<div class="absolute inset-0 bg-primary-fixed/30 rounded-full blur-3xl -z-10 transform translate-x-12 translate-y-12"></div>
+<div class="w-full max-w-[340px] bg-surface-container-lowest rounded-[32px] p-4 shadow-ambient-hover border border-surface-container-highest relative z-10 overflow-hidden transform rotate-[-2deg]">
+<!-- App Header -->
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface">2018 Toyota Tacoma</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">TRD Off-Road \ 64,230 mi</p>
+</div>
+<img alt="Toyota Tacoma Profile" class="w-12 h-12 rounded-full object-cover border-2 border-surface-container" data-alt="close up of a silver modern pickup truck grille and headlight slightly dusty from an off-road trail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX8HQNsPo159zT3Ao13H5HraDblSXNAgmKELoFKUDZd1SKWrIWPFOusuA-QtMQwNLNcipNrG6SfLXaFPD8iIzL-6svAWlZK6PvVhAd6vAaXjeMeKNVymg1TP2sIqiPJ-PuvUv2BDZSqDBvcYVF-NyZD3M8OKDOQhEPNrrHKfoWk_mzZqKVOR0dU7wZDPoUAqeYREizUBt8d_V-qRWXaHSK7QTQ3ClkMMWNTeHwpCF10rK34RU2HDxivBEL6igb6wbPonsCcw12Rgg"/>
+</div>
+<!-- Badge -->
+<div class="bg-error-container text-on-error-container px-4 py-3 rounded-xl flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+<div>
+<p class="font-label-lg text-label-lg font-bold">Maintenance Overdue</p>
+<p class="font-label-sm text-label-sm opacity-80">Oil Change • 230 miles past due</p>
+</div>
+</div>
+<!-- Progress Ring Simulation -->
+<div class="bg-surface p-4 rounded-2xl mb-4 border border-surface-variant flex items-center justify-between">
+<div>
+<p class="font-label-lg text-label-lg text-on-surface-variant">Overall Health</p>
+<p class="font-headline-md text-headline-md text-on-surface">88%</p>
+</div>
+<div class="w-16 h-16 rounded-full border-4 border-primary-container/20 border-t-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-container" data-icon="health_and_safety">health_and_safety</span>
+</div>
+</div>
+<!-- Logs list snippet -->
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-3 bg-surface rounded-xl border border-surface-variant">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" data-icon="build">build</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Front Brakes</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Planned • High Urgency</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-surface rounded-xl border border-surface-variant">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+</div>
+<div>
+<p class="font-label-lg text-label-lg text-on-surface">Tire Rotation</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Completed • 60,000 mi</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Highlights Bento Grid -->
+<section class="px-6 lg:px-8 py-20 bg-surface-container-low">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="font-headline-lg text-headline-lg text-on-background mb-4">Every tool you need, in your pocket.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">Stop guessing when your next fluid change is due. Carbook keeps your maintenance on track and your projects organized.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Feature 1 -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 shadow-ambient border border-surface-container md:col-span-2 relative overflow-hidden flex flex-col justify-between">
+<div class="z-10 relative">
+<div class="w-12 h-12 bg-secondary-container text-on-secondary-container rounded-xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-2">Dynamic Maintenance Schedules</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md">Stay ahead of wear and tear. Automatically track tasks based on mileage or time intervals, tailored to your specific vehicle.</p>
+</div>
+<div class="mt-8 flex gap-4 overflow-hidden relative z-10">
+<div class="bg-secondary-fixed/50 border border-secondary-fixed-dim px-4 py-2 rounded-full font-label-sm text-label-sm text-on-secondary-fixed-variant whitespace-nowrap">Upcoming: Transmission Fluid</div>
+<div class="bg-surface px-4 py-2 rounded-full font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap border border-outline-variant">Due in 1,200 mi</div>
+</div>
+<div class="absolute right-0 bottom-0 w-64 h-64 bg-[url('https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&amp;fit=crop&amp;q=80&amp;w=400&amp;h=400')] bg-cover opacity-10 rounded-tl-[100px]" data-alt="clean organized mechanic workshop pegboard with various hand tools neatly arranged"></div>
+</div>
+<!-- Feature 2 -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 shadow-ambient border border-surface-container flex flex-col relative overflow-hidden">
+<div class="w-12 h-12 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-xl flex items-center justify-center mb-6 z-10">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-2 z-10">Repair &amp; Modification Tracking</h3>
+<p class="font-body-md text-body-md text-on-surface-variant z-10">Log every bolt turned. Keep separate records for routine preservation and aftermarket enhancements.</p>
+</div>
+<!-- Feature 3 -->
+<div class="bg-surface-container-lowest rounded-2xl p-8 shadow-ambient border border-surface-container md:col-span-3 lg:col-span-3 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+<div class="flex-1 z-10">
+<div class="w-12 h-12 bg-primary-container text-on-primary-container rounded-xl flex items-center justify-center mb-6">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-2">Project Planning</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xl">Organize complex rebuilds or simple weekend jobs. Assign urgency levels and track parts needed before you put the car on jack stands.</p>
+</div>
+<div class="w-full md:w-auto flex flex-col gap-3 z-10">
+<div class="bg-surface px-6 py-4 rounded-xl border-l-4 border-error shadow-sm flex items-center justify-between min-w-[280px]">
+<span class="font-label-lg text-label-lg text-on-surface">Replace Water Pump</span>
+<span class="bg-error-container text-on-error-container text-[10px] px-2 py-1 rounded-full font-bold uppercase">High Urgency</span>
+</div>
+<div class="bg-surface px-6 py-4 rounded-xl border-l-4 border-secondary-container shadow-sm flex items-center justify-between min-w-[280px] opacity-80">
+<span class="font-label-lg text-label-lg text-on-surface">Install Skid Plate</span>
+<span class="bg-secondary text-on-secondary text-[10px] px-2 py-1 rounded-full font-bold uppercase">Med Urgency</span>
+</div>
+<div class="bg-surface px-6 py-4 rounded-xl border-l-4 border-primary-fixed shadow-sm flex items-center justify-between min-w-[280px] opacity-60">
+<span class="font-label-lg text-label-lg text-on-surface">Detail Interior</span>
+<span class="bg-surface-container-highest text-on-surface-variant text-[10px] px-2 py-1 rounded-full font-bold uppercase">Low Urgency</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- AI Assistant Spotlight -->
+<section class="px-6 lg:px-8 py-24 max-w-7xl mx-auto">
+<div class="bg-inverse-surface rounded-[32px] p-8 md:p-12 shadow-ambient-hover relative overflow-hidden flex flex-col lg:flex-row items-center gap-12">
+<!-- Abstract dark background texture -->
+<div class="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1620802051772-56b0635338ec?auto=format&amp;fit=crop&amp;q=80&amp;w=1000')] bg-cover bg-center mix-blend-overlay" data-alt="dark abstract metallic surface texture with subtle brushed lines and soft reflections"></div>
+<div class="flex-1 relative z-10">
+<div class="inline-flex items-center gap-2 bg-inverse-primary/20 text-inverse-primary px-4 py-2 rounded-full mb-6 font-label-lg text-label-lg border border-inverse-primary/30">
+<span class="material-symbols-outlined text-sm" data-icon="smart_toy">smart_toy</span>
+                        Powered by AI
+                    </div>
+<h2 class="font-headline-lg text-headline-lg text-inverse-on-surface mb-4">Your Personal AI Mechanic</h2>
+<p class="font-body-lg text-body-lg text-surface-variant max-w-lg">
+                        Upload your vehicle's specific service manuals and let our AI assist you. Get exact torque specs, fluid capacities, and step-by-step guidance instantly, right from your phone.
+                    </p>
+</div>
+<!-- Chat Snippet Visual -->
+<div class="w-full lg:w-[400px] relative z-10">
+<div class="bg-surface-container-lowest rounded-2xl p-6 shadow-2xl border border-surface-container-highest">
+<div class="flex gap-4 mb-6">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="person">person</span>
+</div>
+<div class="bg-surface-container px-4 py-3 rounded-2xl rounded-tl-sm text-on-surface font-body-md text-body-md">
+                                What's the torque spec for the oil drain plug on my Tacoma?
+                            </div>
+</div>
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded-full bg-primary-container flex-shrink-0 flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined text-sm" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="bg-primary-fixed/20 border border-primary-fixed-dim/30 px-4 py-3 rounded-2xl rounded-tr-sm text-on-surface font-body-md text-body-md">
+                                For your 2018 Toyota Tacoma (3.5L V6), the oil drain plug torque spec is <strong class="text-primary font-bold">30 ft-lbs (40 Nm)</strong>. Don't forget to use a new crush washer!
+                            </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Value Proposition -->
+<section class="px-6 lg:px-8 py-20 bg-tertiary/5 border-y border-tertiary/10">
+<div class="max-w-4xl mx-auto text-center">
+<span class="material-symbols-outlined text-tertiary text-5xl mb-6" data-icon="verified">verified</span>
+<h2 class="font-headline-lg text-headline-lg text-on-background mb-6">Built for the long haul.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                    A well-documented vehicle is a valuable vehicle. Digital, verifiable records of maintenance and modifications not only ensure reliability on the trail but significantly increase resale value when it's time for your next rig.
+                </p>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-stone-100 dark:bg-stone-950 w-full py-12 border-t border-stone-200 dark:border-stone-800">
+<div class="flex flex-col md:flex-row justify-between items-center px-8 max-w-7xl mx-auto gap-6">
+<div class="flex flex-col items-center md:items-start gap-2">
+<span class="font-['Plus_Jakarta_Sans'] text-lg font-bold text-stone-900 dark:text-stone-100 antialiased">Carbook</span>
+<p class="font-['Plus_Jakarta_Sans'] text-sm text-stone-500 dark:text-stone-400">© 2024 Carbook. Engineered for the long haul.</p>
+</div>
+<nav class="flex flex-wrap justify-center gap-6">
+<a class="font-['Plus_Jakarta_Sans'] text-sm text-stone-500 dark:text-stone-400 hover:underline decoration-emerald-500 underline-offset-4 opacity-80 hover:opacity-100 transition-opacity" href="#">Features</a>
+<a class="font-['Plus_Jakarta_Sans'] text-sm text-stone-500 dark:text-stone-400 hover:underline decoration-emerald-500 underline-offset-4 opacity-80 hover:opacity-100 transition-opacity" href="#">Maintenance</a>
+<a class="font-['Plus_Jakarta_Sans'] text-sm text-stone-500 dark:text-stone-400 hover:underline decoration-emerald-500 underline-offset-4 opacity-80 hover:opacity-100 transition-opacity" href="#">Resale Value</a>
+<a class="font-['Plus_Jakarta_Sans'] text-sm text-stone-500 dark:text-stone-400 hover:underline decoration-emerald-500 underline-offset-4 opacity-80 hover:opacity-100 transition-opacity" href="#">Privacy</a>
+<a class="font-['Plus_Jakarta_Sans'] text-sm text-stone-500 dark:text-stone-400 hover:underline decoration-emerald-500 underline-offset-4 opacity-80 hover:opacity-100 transition-opacity" href="#">Terms</a>
+</nav>
+<div class="flex gap-4">
+<button aria-label="Download on App Store" class="bg-surface-container-highest text-on-surface p-2 rounded-lg hover:bg-surface-dim transition-colors">
+<span class="material-symbols-outlined" data-icon="apple">ios</span>
+</button>
+<button aria-label="Get it on Google Play" class="bg-surface-container-highest text-on-surface p-2 rounded-lg hover:bg-surface-dim transition-colors">
+<span class="material-symbols-outlined" data-icon="play_arrow">play_arrow</span>
+</button>
+</div>
+</div>
+</footer>
+</body></html>
