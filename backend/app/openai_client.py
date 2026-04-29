@@ -143,7 +143,8 @@ class OpenAIResponsesAdapter:
             "the uploaded manuals. Return JSON with a top-level suggestions array. "
             "Each suggestion must include title, description, schedule_type, "
             "interval_value, time_unit, priority, manual_reference, and "
-            "selected_by_default. Do not repeat existing maintenance items."
+            "selected_by_default. Do not repeat existing maintenance items. "
+            f"Use the user's app language when writing user-visible text; locale: {payload.locale or 'en'}."
         )
         response = self._client.responses.create(
             model=self._model,
@@ -171,7 +172,8 @@ class OpenAIResponsesAdapter:
             "to the active car, use its profile, repairs, maintenance, and manuals "
             "first. For broader automotive questions, give general guidance and use "
             "web results when needed. Prefer manual-backed answers when available "
-            "and cite sources briefly."
+            "and cite sources briefly. "
+            f"Answer in the user's app language when possible; locale: {payload.locale or 'en'}."
         )
         response = self._client.responses.create(
             model=self._model,

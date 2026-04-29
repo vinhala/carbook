@@ -1,6 +1,7 @@
 import 'package:carful/src/core/theme/app_theme.dart';
 import 'package:carful/src/domain/ai_schedule_suggestion.dart';
 import 'package:carful/src/features/ai/ai_assistant_controller.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,15 +26,15 @@ class _MaintenanceAiSuggestionsScreenState
   Widget build(BuildContext context) {
     final carId = widget.carId;
     if (carId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Invalid AI maintenance suggestions.')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidAiMaintenanceSuggestions)),
       );
     }
 
     final suggestionsAsync = ref.watch(maintenanceSuggestionsProvider(carId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Suggested Schedule')),
+      appBar: AppBar(title: Text(context.l10n.suggestedSchedule)),
       body: SafeArea(
         child: suggestionsAsync.when(
           data: (suggestions) {
@@ -78,13 +79,13 @@ class _MaintenanceAiSuggestionsScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'AI Advisor is analyzing...',
+                              context.l10n.aiAdvisorAnalyzing,
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(fontWeight: FontWeight.w800),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Select the recommended maintenance items to add to your vehicle tracker.',
+                              context.l10n.aiSuggestionsBody,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: AppTheme.textSecondary),
                             ),
@@ -164,9 +165,9 @@ class _MaintenanceAiSuggestionsScreenState
                           : const Icon(
                               Icons.playlist_add_check_circle_outlined,
                             ),
-                      label: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        child: Text('Confirm & Add to Schedule'),
+                      label: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Text(context.l10n.confirmAddToSchedule),
                       ),
                     ),
                   ),
@@ -178,7 +179,9 @@ class _MaintenanceAiSuggestionsScreenState
           error: (error, stackTrace) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to generate AI suggestions.\n$error'),
+              child: Text(
+                context.l10n.unableToGenerateAiSuggestions(error.toString()),
+              ),
             ),
           ),
         ),
@@ -199,16 +202,18 @@ class _MaintenanceAiSuggestionsScreenState
             carId,
             _selectedIndexes.map((index) => suggestions[index]).toList(),
           );
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       context.pop();
     } catch (error) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to add suggestions.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToAddSuggestions(error.toString())),
+        ),
       );
     } finally {
       if (mounted) {
@@ -251,7 +256,11 @@ class _SuggestionBody extends StatelessWidget {
                 '${suggestion.intervalValue} ${suggestion.scheduleType == 'time' ? suggestion.timeUnit ?? 'weeks' : 'mi'}',
               ),
             ),
-            Chip(label: Text('${suggestion.priority.toUpperCase()} priority')),
+            Chip(
+              label: Text(
+                context.l10n.priorityLabel(suggestion.priority.toUpperCase()),
+              ),
+            ),
             if (suggestion.manualReference != null)
               Chip(label: Text(suggestion.manualReference!)),
           ],

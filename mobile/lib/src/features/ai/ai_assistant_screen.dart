@@ -3,6 +3,7 @@ import 'package:carful/src/domain/assistant_message.dart';
 import 'package:carful/src/domain/assistant_message_source.dart';
 import 'package:carful/src/features/ai/ai_assistant_controller.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,7 +31,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   Widget build(BuildContext context) {
     final carId = widget.carId;
     if (carId == null) {
-      return const Scaffold(body: Center(child: Text('Invalid AI assistant.')));
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidAiAssistant)),
+      );
     }
 
     final profileAsync = ref.watch(carProfileProvider(carId));
@@ -40,7 +43,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(profileAsync.asData?.value?.displayName ?? 'AI Assistant'),
+        title: Text(
+          profileAsync.asData?.value?.displayName ?? context.l10n.aiAssistant,
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -71,8 +76,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                   Expanded(
                     child: Text(
                       hasManuals
-                          ? 'Ask about this car, its workshop manuals, maintenance, repairs, and troubleshooting.'
-                          : 'Add at least one workshop manual to start using the assistant.',
+                          ? context.l10n.askAssistantBody
+                          : context.l10n.aiAssistantNeedsManual,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
@@ -95,7 +100,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                     error: (error, stackTrace) => Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24),
-                        child: Text('Unable to load AI assistant.\n$error'),
+                        child: Text(
+                          context.l10n.unableToLoadAiAssistant(
+                            error.toString(),
+                          ),
+                        ),
                       ),
                     ),
                   );
@@ -104,7 +113,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                 error: (error, stackTrace) => Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text('Unable to load workshop manuals.\n$error'),
+                    child: Text(
+                      context.l10n.unableToLoadWorkshopManuals(
+                        error.toString(),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -121,9 +134,8 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                         controller: _controller,
                         minLines: 1,
                         maxLines: 4,
-                        decoration: const InputDecoration(
-                          hintText:
-                              'Ask about maintenance, specs, or procedures...',
+                        decoration: InputDecoration(
+                          hintText: context.l10n.assistantHint,
                         ),
                       ),
                     ),
@@ -171,7 +183,9 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to send message.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToSendMessage(error.toString())),
+        ),
       );
     } finally {
       if (mounted) {
@@ -207,7 +221,7 @@ class _AssistantDisabledState extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Text(
-              'Add at least one workshop manual to start using the assistant.',
+              context.l10n.aiAssistantNeedsManual,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppTheme.textSecondary,
                 fontWeight: FontWeight.w600,
@@ -231,11 +245,10 @@ class _MessageList extends StatelessWidget {
     if (messages.isEmpty) {
       return ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        children: const [
+        children: [
           _AssistantBubble(
-            message:
-                'Hello. I have your workshop manuals loaded. What are we tackling today?',
-            sources: [],
+            message: context.l10n.assistantGreeting,
+            sources: const [],
             isRejected: false,
           ),
         ],

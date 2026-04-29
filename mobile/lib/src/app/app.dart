@@ -1,5 +1,6 @@
 import 'package:carful/src/app/router.dart';
 import 'package:carful/src/core/theme/app_theme.dart';
+import 'package:carful/src/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class CarfulApp extends StatelessWidget {
@@ -11,6 +12,8 @@ class CarfulApp extends StatelessWidget {
       title: 'Carful',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: AppRouter.router,
     );
   }

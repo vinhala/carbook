@@ -68,6 +68,7 @@ class MaintenanceSuggestion(BaseModel):
 
 class MaintenanceSuggestionsRequest(BaseModel):
     profile: CarProfileSnapshot
+    locale: str | None = None
     existing_items: list[MaintenanceSummaryItem] = Field(default_factory=list)
     repairs: list[RepairSummaryItem] = Field(default_factory=list)
     manuals: list[ManualSummaryItem] = Field(default_factory=list)
@@ -88,6 +89,7 @@ class AssistantSource(BaseModel):
 
 class AssistantMessageRequest(BaseModel):
     client_id: str = "anonymous"
+    locale: str | None = None
     local_conversation_id: str | None = None
     conversation_id: str | None = None
     message: str

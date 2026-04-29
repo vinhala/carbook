@@ -3,6 +3,7 @@ import 'package:carful/src/domain/maintenance_schedule_entry.dart';
 import 'package:carful/src/features/maintenance/maintenance_controller.dart';
 import 'package:carful/src/features/maintenance/maintenance_formatters.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,8 +16,8 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (carId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Invalid maintenance schedule.')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidMaintenanceSchedule)),
       );
     }
 
@@ -27,13 +28,15 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(profileAsync.asData?.value?.displayName ?? 'Maintenance'),
+        title: Text(
+          profileAsync.asData?.value?.displayName ?? context.l10n.maintenance,
+        ),
         actions: [
           IconButton(
             key: const ValueKey('open-ai-schedule-generator-button'),
             tooltip: hasManuals
-                ? 'Auto-generate schedule with AI'
-                : 'Upload manuals to enable AI schedule generation',
+                ? context.l10n.autoGenerateScheduleAi
+                : context.l10n.uploadManualsEnableAiSchedule,
             onPressed: hasManuals
                 ? () => context.push('/cars/$carId/maintenance/suggestions')
                 : null,
@@ -44,7 +47,7 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/cars/$carId/maintenance/new'),
         icon: const Icon(Icons.add_task_outlined),
-        label: const Text('New item'),
+        label: Text(context.l10n.newItem),
       ),
       body: SafeArea(
         child: scheduleAsync.when(
@@ -61,7 +64,9 @@ class MaintenanceScheduleScreen extends ConsumerWidget {
           error: (error, stackTrace) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load maintenance items.\n$error'),
+              child: Text(
+                context.l10n.unableToLoadMaintenanceItems(error.toString()),
+              ),
             ),
           ),
         ),
@@ -112,7 +117,7 @@ class _MaintenanceScheduleBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'No maintenance items yet',
+                    context.l10n.noMaintenanceItemsYet,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
@@ -120,7 +125,7 @@ class _MaintenanceScheduleBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Create your first recurring maintenance task to start tracking what is due next.',
+                    context.l10n.maintenanceEmptyBody,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
@@ -130,7 +135,7 @@ class _MaintenanceScheduleBody extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: onCreateItem,
                     icon: const Icon(Icons.add_circle_outline_rounded),
-                    label: const Text('Create maintenance item'),
+                    label: Text(context.l10n.createMaintenanceItem),
                   ),
                 ],
               ),
@@ -151,8 +156,8 @@ class _MaintenanceScheduleBody extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
         if (overdueItems.isNotEmpty) ...[
-          const _SectionHeader(
-            title: 'Overdue',
+          _SectionHeader(
+            title: context.l10n.overdue,
             icon: Icons.warning_amber_rounded,
             color: AppTheme.secondary,
           ),
@@ -171,8 +176,8 @@ class _MaintenanceScheduleBody extends StatelessWidget {
         ],
         if (upcomingItems.isNotEmpty) ...[
           if (overdueItems.isNotEmpty) const SizedBox(height: 8),
-          const _SectionHeader(
-            title: 'Upcoming',
+          _SectionHeader(
+            title: context.l10n.upcoming,
             icon: Icons.schedule_rounded,
             color: AppTheme.primary,
           ),
@@ -238,6 +243,8 @@ class _MaintenanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final localeName = Localizations.localeOf(context).toLanguageTag();
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(24),
@@ -276,6 +283,8 @@ class _MaintenanceCard extends StatelessWidget {
                         Text(
                           formatMaintenanceSchedule(
                             entry.item,
+                            l10n: l10n,
+                            localeName: localeName,
                             mileageUnit: mileageUnit,
                           ),
                           style: Theme.of(context).textTheme.bodyMedium
@@ -295,7 +304,14 @@ class _MaintenanceCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Next target: ${formatMaintenanceNextTarget(entry.dueStatus, mileageUnit: mileageUnit)}',
+                          l10n.nextTarget(
+                            formatMaintenanceNextTarget(
+                              entry.dueStatus,
+                              l10n: l10n,
+                              localeName: localeName,
+                              mileageUnit: mileageUnit,
+                            ),
+                          ),
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppTheme.textSecondary),
                         ),
@@ -309,7 +325,7 @@ class _MaintenanceCard extends StatelessWidget {
                       FilledButton.tonalIcon(
                         onPressed: onQuickLog,
                         icon: const Icon(Icons.edit_document),
-                        label: const Text('Log'),
+                        label: Text(l10n.log),
                       ),
                     ],
                   ),

@@ -5,6 +5,7 @@ import 'package:carful/src/domain/car_profile.dart';
 import 'package:carful/src/domain/workshop_manual.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:carful/src/features/repairs/repair_controller.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,15 +20,17 @@ class CarProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (carId == null) {
-      return const Scaffold(body: Center(child: Text('Invalid car profile.')));
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidCarProfile)),
+      );
     }
 
     final profileAsync = ref.watch(carProfileProvider(carId!));
     return profileAsync.when(
       data: (profile) {
         if (profile == null) {
-          return const Scaffold(
-            body: Center(child: Text('This car profile could not be found.')),
+          return Scaffold(
+            body: Center(child: Text(context.l10n.carProfileNotFound)),
           );
         }
         return _CarProfileView(profile: profile);
@@ -35,7 +38,9 @@ class CarProfileScreen extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stackTrace) => Scaffold(
-        body: Center(child: Text('Unable to load the profile.\n$error')),
+        body: Center(
+          child: Text(context.l10n.unableToLoadProfile(error.toString())),
+        ),
       ),
     );
   }
@@ -56,16 +61,18 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final localeName = Localizations.localeOf(context).toLanguageTag();
     final profile = widget.profile;
-    final registration = DateFormat.yMMMM().format(
-      profile.firstRegistrationMonth,
-    );
-    final mileage = NumberFormat.decimalPattern().format(
-      profile.currentMileage,
-    );
-    final lastUpdated = DateFormat.yMMMd().add_Hm().format(
-      profile.lastMileageUpdatedAt,
-    );
+    final registration = DateFormat.yMMMM(
+      localeName,
+    ).format(profile.firstRegistrationMonth);
+    final mileage = NumberFormat.decimalPattern(
+      localeName,
+    ).format(profile.currentMileage);
+    final lastUpdated = DateFormat.yMMMd(
+      localeName,
+    ).add_Hm().format(profile.lastMileageUpdatedAt);
     final imageProvider =
         profile.photoPath != null && File(profile.photoPath!).existsSync()
         ? FileImage(File(profile.photoPath!))
@@ -81,7 +88,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
         title: Text(profile.displayName),
         actions: [
           IconButton(
-            tooltip: 'Edit profile',
+            tooltip: l10n.editProfile,
             onPressed: () => context.push('/cars/${profile.id}/edit'),
             icon: const Icon(Icons.edit_outlined),
           ),
@@ -125,18 +132,18 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             ),
             const SizedBox(height: 8),
             Text(
-              '${profile.engine} • Registered $registration',
+              '${profile.engine} • ${l10n.registeredDate(registration)}',
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppTheme.textSecondary,
               ),
             ),
             const SizedBox(height: 20),
             _DetailCard(
-              title: 'Mileage',
+              title: l10n.mileage,
               trailing: OutlinedButton.icon(
                 onPressed: () => _showMileageDialog(context, ref, profile),
                 icon: const Icon(Icons.speed_rounded),
-                label: const Text('Update mileage'),
+                label: Text(l10n.updateMileage),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +156,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Last updated on $lastUpdated',
+                    l10n.lastUpdatedOn(lastUpdated),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
@@ -159,15 +166,15 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             ),
             const SizedBox(height: 16),
             _DetailCard(
-              title: 'Vehicle details',
+              title: l10n.vehicleDetails,
               child: Column(
                 children: [
-                  _InfoRow(label: 'Make', value: profile.make),
-                  _InfoRow(label: 'Model', value: profile.model),
-                  _InfoRow(label: 'Engine', value: profile.engine),
-                  _InfoRow(label: 'VIN', value: profile.vin),
+                  _InfoRow(label: l10n.make, value: profile.make),
+                  _InfoRow(label: l10n.model, value: profile.model),
+                  _InfoRow(label: l10n.engine, value: profile.engine),
+                  _InfoRow(label: l10n.vin, value: profile.vin),
                   _InfoRow(
-                    label: 'First registration',
+                    label: l10n.firstRegistration,
                     value: registration,
                     isLast: true,
                   ),
@@ -176,7 +183,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             ),
             const SizedBox(height: 16),
             _DetailCard(
-              title: 'Mileage reminder',
+              title: l10n.mileageReminder,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -192,7 +199,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      profile.reminderFrequency.label,
+                      profile.reminderFrequency.localizedLabel(l10n),
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -201,8 +208,8 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                   const SizedBox(height: 12),
                   Text(
                     profile.reminderFrequency.showsWarning
-                        ? 'This cadence can make it easier to miss critical maintenance intervals.'
-                        : 'Carful will keep nudging you to keep mileage fresh for future maintenance tracking.',
+                        ? l10n.mileageReminderWarningBody
+                        : l10n.mileageReminderNudgeBody,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
@@ -212,18 +219,18 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             ),
             const SizedBox(height: 16),
             _DetailCard(
-              title: 'Maintenance schedule',
+              title: l10n.maintenanceSchedule,
               trailing: FilledButton.tonalIcon(
                 onPressed: () =>
                     context.push('/cars/${profile.id}/maintenance'),
                 icon: const Icon(Icons.event_repeat_rounded),
-                label: const Text('Open'),
+                label: Text(l10n.open),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Track recurring maintenance, see what is overdue, and log completed service from one place.',
+                    l10n.maintenanceScheduleCardBody,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
@@ -238,7 +245,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Create mileage- or time-based items for this vehicle.',
+                          l10n.maintenanceScheduleCardHint,
                           style: theme.textTheme.bodyMedium,
                         ),
                       ),
@@ -249,18 +256,18 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             ),
             const SizedBox(height: 16),
             _DetailCard(
-              title: 'Repairs & modifications',
+              title: l10n.repairsModifications,
               trailing: FilledButton.tonalIcon(
                 key: const ValueKey('open-repairs-button'),
                 onPressed: () => context.push('/cars/${profile.id}/repairs'),
                 icon: const Icon(Icons.build_rounded),
-                label: const Text('Open'),
+                label: Text(l10n.open),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Keep planned repairs, completed fixes, and upgrades together so you always know what is next.',
+                    l10n.repairsModificationsBody,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
@@ -278,16 +285,14 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                     child: plannedRepairsAsync.when(
                       data: (count) => Text(
                         key: const ValueKey('planned-repairs-count'),
-                        count == 1
-                            ? '1 planned repair'
-                            : '$count planned repairs',
+                        l10n.plannedRepairCount(count),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      loading: () => const Text('Loading planned repairs...'),
+                      loading: () => Text(l10n.loadingPlannedRepairs),
                       error: (error, stackTrace) =>
-                          const Text('Unable to load planned repairs.'),
+                          Text(l10n.unableToLoadPlannedRepairs),
                     ),
                   ),
                 ],
@@ -295,7 +300,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             ),
             const SizedBox(height: 16),
             _DetailCard(
-              title: 'Workshop manuals',
+              title: l10n.workshopManuals,
               trailing: FilledButton.tonalIcon(
                 key: const ValueKey('add-manual-button'),
                 onPressed: _isAddingManual ? null : () => _addManuals(context),
@@ -305,7 +310,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.upload_file_rounded),
-                label: Text(_isAddingManual ? 'Adding...' : 'Add manual'),
+                label: Text(_isAddingManual ? l10n.adding : l10n.addManual),
               ),
               child: manualsAsync.when(
                 data: (manuals) => _WorkshopManualList(
@@ -314,9 +319,9 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                   onDeleteManual: (manual) =>
                       _confirmDeleteManual(context, ref, profile, manual),
                 ),
-                loading: () => const Text('Loading manuals...'),
+                loading: () => Text(l10n.loadingManuals),
                 error: (error, stackTrace) => Text(
-                  'Unable to load manuals.\n$error',
+                  l10n.unableToLoadManuals(error.toString()),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppTheme.error,
                   ),
@@ -325,19 +330,19 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             ),
             const SizedBox(height: 16),
             _DetailCard(
-              title: 'AI Assistant',
+              title: l10n.aiAssistant,
               trailing: FilledButton.tonalIcon(
                 key: const ValueKey('open-ai-assistant-button'),
                 onPressed: hasManuals
                     ? () => context.push('/cars/${profile.id}/assistant')
                     : null,
                 icon: const Icon(Icons.smart_toy_outlined),
-                label: const Text('Open'),
+                label: Text(l10n.open),
               ),
               child: Text(
                 hasManuals
-                    ? 'Use your manuals, maintenance history, and repair context to answer vehicle-specific questions.'
-                    : 'Add at least one workshop manual to start using the assistant.',
+                    ? l10n.aiAssistantReadyBody
+                    : l10n.aiAssistantNeedsManual,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppTheme.textSecondary,
                 ),
@@ -363,7 +368,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
     final submitted = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Update mileage'),
+        title: Text(context.l10n.updateMileage),
         content: Form(
           key: formKey,
           child: TextFormField(
@@ -371,13 +376,13 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
             keyboardType: TextInputType.number,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: 'Mileage',
+              labelText: context.l10n.mileage,
               suffixText: profile.mileageUnit,
             ),
             validator: (value) {
               final mileage = int.tryParse(value ?? '');
               if (mileage == null || mileage < 0) {
-                return 'Enter a valid mileage.';
+                return context.l10n.enterValidMileage;
               }
               return null;
             },
@@ -386,7 +391,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -394,7 +399,7 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
                 Navigator.of(dialogContext).pop(true);
               }
             },
-            child: const Text('Save'),
+            child: Text(context.l10n.save),
           ),
         ],
       ),
@@ -413,7 +418,9 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to update mileage.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToUpdateMileage(error.toString())),
+        ),
       );
     } finally {
       controller.dispose();
@@ -433,7 +440,11 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to add workshop manuals.\n$error')),
+        SnackBar(
+          content: Text(
+            context.l10n.unableToAddWorkshopManuals(error.toString()),
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -448,7 +459,9 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
     final result = await OpenFilex.open(manual.localPath);
     if (result.type != ResultType.done && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to open ${manual.originalName}.')),
+        SnackBar(
+          content: Text(context.l10n.unableToOpenFile(manual.originalName)),
+        ),
       );
     }
   }
@@ -462,18 +475,18 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Remove workshop manual?'),
+        title: Text(context.l10n.removeWorkshopManualTitle),
         content: Text(
-          'Carful will remove ${manual.originalName} from this vehicle and the AI assistant context.',
+          context.l10n.removeWorkshopManualBody(manual.originalName),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Remove'),
+            child: Text(context.l10n.remove),
           ),
         ],
       ),
@@ -492,7 +505,9 @@ class _CarProfileViewState extends ConsumerState<_CarProfileView> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to remove manual.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToRemoveManual(error.toString())),
+        ),
       );
     }
   }
@@ -599,7 +614,7 @@ class _WorkshopManualList extends StatelessWidget {
     final theme = Theme.of(context);
     if (manuals.isEmpty) {
       return Text(
-        'Add PDF workshop manuals so Carful AI can answer questions about this vehicle and generate schedule suggestions.',
+        context.l10n.addPdfManuals,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: AppTheme.textSecondary,
         ),

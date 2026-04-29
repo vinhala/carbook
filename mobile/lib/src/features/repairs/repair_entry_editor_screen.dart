@@ -12,6 +12,7 @@ import 'package:carful/src/domain/repair_status.dart';
 import 'package:carful/src/domain/repair_urgency.dart';
 import 'package:carful/src/features/repairs/repair_controller.dart';
 import 'package:carful/src/features/repairs/repair_formatters.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:carful/src/services/media_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,7 +73,9 @@ class _RepairEntryEditorScreenState
   @override
   Widget build(BuildContext context) {
     if (!_isEditing && widget.carId == null) {
-      return const Scaffold(body: Center(child: Text('Invalid repair entry.')));
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidRepairEntry)),
+      );
     }
 
     final detailsAsync = _isEditing
@@ -82,8 +85,8 @@ class _RepairEntryEditorScreenState
     return detailsAsync.when(
       data: (details) {
         if (_isEditing && details == null) {
-          return const Scaffold(
-            body: Center(child: Text('This repair entry could not be found.')),
+          return Scaffold(
+            body: Center(child: Text(context.l10n.repairEntryNotFound)),
           );
         }
 
@@ -92,7 +95,11 @@ class _RepairEntryEditorScreenState
         }
 
         return Scaffold(
-          appBar: AppBar(title: Text(_isEditing ? 'Edit Entry' : 'New Entry')),
+          appBar: AppBar(
+            title: Text(
+              _isEditing ? context.l10n.editEntry : context.l10n.newEntryTitle,
+            ),
+          ),
           body: SafeArea(
             child: Form(
               key: _formKey,
@@ -107,8 +114,8 @@ class _RepairEntryEditorScreenState
                           TextFormField(
                             key: const ValueKey('repair-title-field'),
                             controller: _titleController,
-                            decoration: const InputDecoration(
-                              labelText: 'Title',
+                            decoration: InputDecoration(
+                              labelText: context.l10n.title,
                             ),
                             textInputAction: TextInputAction.next,
                             validator: _requiredValidator,
@@ -119,8 +126,8 @@ class _RepairEntryEditorScreenState
                             controller: _descriptionController,
                             minLines: 3,
                             maxLines: 5,
-                            decoration: const InputDecoration(
-                              labelText: 'Description',
+                            decoration: InputDecoration(
+                              labelText: context.l10n.description,
                             ),
                           ),
                         ],
@@ -136,14 +143,16 @@ class _RepairEntryEditorScreenState
                         children: [
                           DropdownButtonFormField<RepairArea>(
                             initialValue: _area,
-                            decoration: const InputDecoration(
-                              labelText: 'Area of vehicle',
+                            decoration: InputDecoration(
+                              labelText: context.l10n.areaOfVehicle,
                             ),
                             items: RepairArea.values
                                 .map(
                                   (area) => DropdownMenuItem(
                                     value: area,
-                                    child: Text(area.label),
+                                    child: Text(
+                                      area.localizedLabel(context.l10n),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -159,10 +168,8 @@ class _RepairEntryEditorScreenState
                           const SizedBox(height: 20),
                           SwitchListTile.adaptive(
                             contentPadding: EdgeInsets.zero,
-                            title: const Text('Mark as modification'),
-                            subtitle: const Text(
-                              'Logs this as an upgrade rather than a repair.',
-                            ),
+                            title: Text(context.l10n.markAsModification),
+                            subtitle: Text(context.l10n.markAsModificationBody),
                             value: _isModification,
                             onChanged: _isSaving
                                 ? null
@@ -173,7 +180,7 @@ class _RepairEntryEditorScreenState
                           if (_status.isPlanned && !_isModification) ...[
                             const SizedBox(height: 20),
                             Text(
-                              'Urgency',
+                              context.l10n.urgency,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
@@ -183,18 +190,18 @@ class _RepairEntryEditorScreenState
                               child: SegmentedButton<RepairUrgency>(
                                 expandedInsets: EdgeInsets.zero,
                                 showSelectedIcon: false,
-                                segments: const [
+                                segments: [
                                   ButtonSegment(
                                     value: RepairUrgency.low,
-                                    label: Text('Low'),
+                                    label: Text(context.l10n.low),
                                   ),
                                   ButtonSegment(
                                     value: RepairUrgency.medium,
-                                    label: Text('Medium'),
+                                    label: Text(context.l10n.medium),
                                   ),
                                   ButtonSegment(
                                     value: RepairUrgency.high,
-                                    label: Text('High'),
+                                    label: Text(context.l10n.high),
                                   ),
                                 ],
                                 selected: {_urgency},
@@ -212,17 +219,22 @@ class _RepairEntryEditorScreenState
                             const SizedBox(height: 20),
                             ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: const Text('Completion date'),
+                              title: Text(context.l10n.completionDate),
                               subtitle: Text(
                                 _completedAt == null
-                                    ? 'Choose a date'
-                                    : formatRepairDate(_completedAt!),
+                                    ? context.l10n.chooseDate
+                                    : formatRepairDate(
+                                        _completedAt!,
+                                        Localizations.localeOf(
+                                          context,
+                                        ).toLanguageTag(),
+                                      ),
                               ),
                               trailing: OutlinedButton(
                                 onPressed: _isSaving
                                     ? null
                                     : _pickCompletedDate,
-                                child: const Text('Select'),
+                                child: Text(context.l10n.select),
                               ),
                             ),
                           ],
@@ -261,14 +273,18 @@ class _RepairEntryEditorScreenState
                   onPressed: _isSaving ? null : () => _save(details),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Text(_isEditing ? 'Save Changes' : 'Create Entry'),
+                    child: Text(
+                      _isEditing
+                          ? context.l10n.saveChanges
+                          : context.l10n.createEntry,
+                    ),
                   ),
                 ),
                 if (_isEditing) ...[
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _isSaving ? null : () => _delete(details!),
-                    child: const Text('Delete Repair'),
+                    child: Text(context.l10n.deleteRepair),
                   ),
                 ],
               ],
@@ -282,7 +298,7 @@ class _RepairEntryEditorScreenState
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Unable to load the repair entry.\n$error'),
+            child: Text(context.l10n.unableToLoadRepairEntry(error.toString())),
           ),
         ),
       ),
@@ -308,7 +324,7 @@ class _RepairEntryEditorScreenState
 
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'This field is required.';
+      return context.l10n.fieldRequired;
     }
     return null;
   }
@@ -383,7 +399,7 @@ class _RepairEntryEditorScreenState
     }
     if (_status.isCompleted && _completedAt == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Choose a completion date first.')),
+        SnackBar(content: Text(context.l10n.chooseCompletionDateFirst)),
       );
       return;
     }
@@ -450,7 +466,9 @@ class _RepairEntryEditorScreenState
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to save this entry.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToSaveEntry(error.toString())),
+        ),
       );
       setState(() => _isSaving = false);
     }
@@ -460,18 +478,16 @@ class _RepairEntryEditorScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete repair?'),
-        content: const Text(
-          'This will remove the entry together with its parts and attachments.',
-        ),
+        title: Text(context.l10n.deleteRepairTitle),
+        content: Text(context.l10n.deleteRepairBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -493,7 +509,9 @@ class _RepairEntryEditorScreenState
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to delete this entry.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToDeleteEntry(error.toString())),
+        ),
       );
       setState(() => _isSaving = false);
     }
@@ -539,7 +557,9 @@ class _PartEditorDialogState extends State<_PartEditorDialog> {
     final existing = widget.existing;
     return AlertDialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      title: Text(existing == null ? 'Add Part' : 'Edit Part'),
+      title: Text(
+        existing == null ? context.l10n.addPart : context.l10n.editPart,
+      ),
       content: SizedBox(
         width: double.maxFinite,
         child: Form(
@@ -549,14 +569,14 @@ class _PartEditorDialogState extends State<_PartEditorDialog> {
             children: [
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(labelText: context.l10n.title),
                 validator: widget.requiredValidator,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _linkController,
-                decoration: const InputDecoration(
-                  labelText: 'Link',
+                decoration: InputDecoration(
+                  labelText: context.l10n.link,
                   hintText: 'https://example.com',
                 ),
               ),
@@ -567,7 +587,7 @@ class _PartEditorDialogState extends State<_PartEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -582,7 +602,7 @@ class _PartEditorDialogState extends State<_PartEditorDialog> {
               ),
             );
           },
-          child: const Text('Save'),
+          child: Text(context.l10n.save),
         ),
       ],
     );
@@ -621,7 +641,7 @@ class _PartsEditor extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Parts List',
+                  context.l10n.partsList,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -630,13 +650,13 @@ class _PartsEditor extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onAddPart,
                   icon: const Icon(Icons.add_rounded),
-                  label: const Text('Add Part'),
+                  label: Text(context.l10n.addPart),
                 ),
               ],
             ),
             if (parts.isEmpty)
               Text(
-                'No parts added yet.',
+                context.l10n.noPartsAdded,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
@@ -656,7 +676,7 @@ class _PartsEditor extends StatelessWidget {
                     child: const Icon(Icons.settings_rounded),
                   ),
                   title: Text(entry.value.title),
-                  subtitle: Text(entry.value.link ?? 'No link'),
+                  subtitle: Text(entry.value.link ?? context.l10n.noLink),
                   trailing: IconButton(
                     onPressed: () => onRemovePart(entry.key),
                     icon: const Icon(Icons.close_rounded),
@@ -692,7 +712,7 @@ class _AttachmentEditor extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Media & Files',
+              context.l10n.mediaFiles,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -704,7 +724,7 @@ class _AttachmentEditor extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onAddPhotos,
                     icon: const Icon(Icons.add_a_photo_outlined),
-                    label: const Text('Add photos'),
+                    label: Text(context.l10n.addPhotos),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -712,7 +732,7 @@ class _AttachmentEditor extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onAddFiles,
                     icon: const Icon(Icons.attach_file_rounded),
-                    label: const Text('Add files'),
+                    label: Text(context.l10n.addFiles),
                   ),
                 ),
               ],

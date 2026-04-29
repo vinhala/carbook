@@ -4,6 +4,7 @@ import 'package:carful/src/domain/maintenance_log_input.dart';
 import 'package:carful/src/features/maintenance/maintenance_controller.dart';
 import 'package:carful/src/features/maintenance/maintenance_formatters.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -30,8 +31,8 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.itemId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Invalid maintenance item.')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidMaintenanceItem)),
       );
     }
 
@@ -40,10 +41,8 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
     return detailsAsync.when(
       data: (details) {
         if (details == null) {
-          return const Scaffold(
-            body: Center(
-              child: Text('This maintenance item could not be found.'),
-            ),
+          return Scaffold(
+            body: Center(child: Text(context.l10n.maintenanceItemNotFound)),
           );
         }
 
@@ -65,7 +64,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
         return Scaffold(
           appBar: AppBar(
             leading: IconButton(
-              tooltip: 'Back to maintenance',
+              tooltip: context.l10n.backToMaintenance,
               onPressed: () {
                 if (context.canPop()) {
                   context.pop();
@@ -78,7 +77,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
             title: Text(details.item.description),
             actions: [
               IconButton(
-                tooltip: 'Edit maintenance item',
+                tooltip: context.l10n.editMaintenanceItem,
                 onPressed: () => context.push(
                   '/cars/${details.item.carProfileId}/maintenance/${details.item.id}/edit',
                 ),
@@ -89,7 +88,7 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _openLogComposer(details),
             icon: const Icon(Icons.edit_document),
-            label: const Text('Log work'),
+            label: Text(context.l10n.logWork),
           ),
           body: SafeArea(
             child: ListView(
@@ -134,6 +133,10 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                                   Text(
                                     formatMaintenanceSchedule(
                                       details.item,
+                                      l10n: context.l10n,
+                                      localeName: Localizations.localeOf(
+                                        context,
+                                      ).toLanguageTag(),
                                       mileageUnit: mileageUnit,
                                     ),
                                     style: Theme.of(context).textTheme.bodyLarge
@@ -163,39 +166,53 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Next required work',
+                          context.l10n.nextRequiredWork,
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 16),
                         _SummaryRow(
-                          label: 'Next target',
+                          label: context.l10n.nextTargetLabel,
                           value: formatMaintenanceNextTarget(
                             details.dueStatus,
+                            l10n: context.l10n,
+                            localeName: Localizations.localeOf(
+                              context,
+                            ).toLanguageTag(),
                             mileageUnit: mileageUnit,
                           ),
                         ),
                         _SummaryRow(
-                          label: 'Status',
+                          label: context.l10n.status,
                           value: formatMaintenanceDueLabel(
                             details.dueStatus,
+                            l10n: context.l10n,
+                            localeName: Localizations.localeOf(
+                              context,
+                            ).toLanguageTag(),
                             mileageUnit: mileageUnit,
                           ),
                         ),
                         _SummaryRow(
-                          label: 'Last service',
+                          label: context.l10n.lastService,
                           value: details.dueStatus.lastPerformedAt == null
-                              ? 'No work logged yet'
-                              : DateFormat.yMMMd().format(
-                                  details.dueStatus.lastPerformedAt!,
-                                ),
+                              ? context.l10n.noWorkLoggedYet
+                              : DateFormat.yMMMd(
+                                  Localizations.localeOf(
+                                    context,
+                                  ).toLanguageTag(),
+                                ).format(details.dueStatus.lastPerformedAt!),
                           isLast: currentMileage == null,
                         ),
                         if (currentMileage != null)
                           _SummaryRow(
-                            label: 'Current odometer',
+                            label: context.l10n.currentOdometer,
                             value: formatPerformedMileage(
                               currentMileage,
+                              l10n: context.l10n,
+                              localeName: Localizations.localeOf(
+                                context,
+                              ).toLanguageTag(),
                               mileageUnit: mileageUnit,
                             ),
                             isLast: true,
@@ -212,14 +229,14 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Service history',
+                          context.l10n.serviceHistory,
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 16),
                         if (details.logs.isEmpty)
                           Text(
-                            'No performed work has been logged for this item yet.',
+                            context.l10n.noPerformedWork,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: AppTheme.textSecondary),
                           )
@@ -250,7 +267,9 @@ class _MaintenanceItemScreenState extends ConsumerState<MaintenanceItemScreen> {
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Unable to load maintenance details.\n$error'),
+            child: Text(
+              context.l10n.unableToLoadMaintenanceDetails(error.toString()),
+            ),
           ),
         ),
       ),
@@ -305,6 +324,8 @@ class _StatusBanner extends StatelessWidget {
             child: Text(
               formatMaintenanceDueLabel(
                 details.dueStatus,
+                l10n: context.l10n,
+                localeName: Localizations.localeOf(context).toLanguageTag(),
                 mileageUnit: mileageUnit,
               ),
               style: Theme.of(
@@ -376,6 +397,8 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final noteText = note;
+    final l10n = context.l10n;
+    final localeName = Localizations.localeOf(context).toLanguageTag();
 
     return Container(
       width: double.infinity,
@@ -391,14 +414,19 @@ class _HistoryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  DateFormat.yMMMd().format(performedAt),
+                  DateFormat.yMMMd(localeName).format(performedAt),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
                 ),
               ),
               Text(
-                formatPerformedMileage(mileage, mileageUnit: mileageUnit),
+                formatPerformedMileage(
+                  mileage,
+                  l10n: l10n,
+                  localeName: localeName,
+                  mileageUnit: mileageUnit,
+                ),
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -492,7 +520,7 @@ class _LogPerformedWorkSheetState
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Log Performed Work',
+                  context.l10n.logPerformedWork,
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -502,12 +530,16 @@ class _LogPerformedWorkSheetState
                   onTap: _isSaving ? null : _pickDate,
                   borderRadius: BorderRadius.circular(18),
                   child: InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Date'),
+                    decoration: InputDecoration(labelText: context.l10n.date),
                     child: Row(
                       children: [
                         const Icon(Icons.event_outlined),
                         const SizedBox(width: 12),
-                        Text(DateFormat.yMMMd().format(_performedAt)),
+                        Text(
+                          DateFormat.yMMMd(
+                            Localizations.localeOf(context).toLanguageTag(),
+                          ).format(_performedAt),
+                        ),
                       ],
                     ),
                   ),
@@ -517,13 +549,13 @@ class _LogPerformedWorkSheetState
                   controller: _mileageController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Mileage',
+                    labelText: context.l10n.mileage,
                     suffixText: widget.mileageUnit,
                   ),
                   validator: (value) {
                     final mileage = int.tryParse(value ?? '');
                     if (mileage == null || mileage < 0) {
-                      return 'Enter a valid mileage.';
+                      return context.l10n.enterValidMileage;
                     }
                     return null;
                   },
@@ -533,17 +565,16 @@ class _LogPerformedWorkSheetState
                   controller: _noteController,
                   minLines: 2,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes',
-                    hintText:
-                        'Optional notes about parts, fluids, or observations',
+                  decoration: InputDecoration(
+                    labelText: context.l10n.notes,
+                    hintText: context.l10n.notesHint,
                   ),
                 ),
                 const SizedBox(height: 20),
                 FilledButton.icon(
                   onPressed: _isSaving ? null : _save,
                   icon: const Icon(Icons.add_task),
-                  label: const Text('Log Performed Work'),
+                  label: Text(context.l10n.logPerformedWork),
                 ),
               ],
             ),
@@ -605,7 +636,11 @@ class _LogPerformedWorkSheetState
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to log performed work.\n$error')),
+        SnackBar(
+          content: Text(
+            context.l10n.unableToLogPerformedWork(error.toString()),
+          ),
+        ),
       );
       setState(() => _isSaving = false);
     }

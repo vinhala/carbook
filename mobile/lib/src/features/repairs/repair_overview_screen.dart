@@ -3,6 +3,7 @@ import 'package:carful/src/domain/repair_entry.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:carful/src/features/repairs/repair_controller.dart';
 import 'package:carful/src/features/repairs/repair_formatters.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,8 +24,8 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.carId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Invalid repair section.')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidRepairSection)),
       );
     }
 
@@ -39,13 +40,14 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          profileAsync.asData?.value?.displayName ?? 'Repairs & Modifications',
+          profileAsync.asData?.value?.displayName ??
+              context.l10n.repairsModificationsTitle,
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateSheet(context),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('New entry'),
+        label: Text(context.l10n.newEntry),
       ),
       body: SafeArea(
         child: overviewAsync.when(
@@ -53,14 +55,14 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
               Text(
-                'Repairs & Modifications',
+                context.l10n.repairsModificationsTitle,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                "Manage your vehicle's mechanical history and future upgrades.",
+                context.l10n.repairOverviewBody,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: AppTheme.textSecondary),
@@ -68,11 +70,14 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
               const SizedBox(height: 20),
               SegmentedButton<bool>(
                 showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment<bool>(value: false, label: Text('Repairs')),
+                segments: [
+                  ButtonSegment<bool>(
+                    value: false,
+                    label: Text(context.l10n.repairs),
+                  ),
                   ButtonSegment<bool>(
                     value: true,
-                    label: Text('Modifications'),
+                    label: Text(context.l10n.modifications),
                   ),
                 ],
                 selected: {_showModifications},
@@ -84,8 +89,8 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
               ),
               const SizedBox(height: 24),
               if (overview.planned.isNotEmpty) ...[
-                const _SectionHeader(
-                  title: 'Planned',
+                _SectionHeader(
+                  title: context.l10n.planned,
                   icon: Icons.calendar_month_rounded,
                 ),
                 const SizedBox(height: 12),
@@ -103,8 +108,8 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
                 const SizedBox(height: 8),
               ],
               if (overview.past.isNotEmpty) ...[
-                const _SectionHeader(
-                  title: 'Past',
+                _SectionHeader(
+                  title: context.l10n.past,
                   icon: Icons.history_rounded,
                 ),
                 const SizedBox(height: 12),
@@ -133,7 +138,7 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
           error: (error, stackTrace) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load repairs.\n$error'),
+              child: Text(context.l10n.unableToLoadRepairs(error.toString())),
             ),
           ),
         ),
@@ -150,8 +155,12 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.calendar_month_rounded),
-              title: Text('Plan ${repairSingularLabel(_showModifications)}'),
-              subtitle: const Text('Track something you still need to do.'),
+              title: Text(
+                context.l10n.planRepair(
+                  repairSingularLabel(context.l10n, _showModifications),
+                ),
+              ),
+              subtitle: Text(context.l10n.trackUpcomingBody),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _openCreateEntry(context, planned: true);
@@ -160,11 +169,11 @@ class _RepairOverviewScreenState extends ConsumerState<RepairOverviewScreen> {
             ListTile(
               leading: const Icon(Icons.history_rounded),
               title: Text(
-                'Track past ${repairSingularLabel(_showModifications)}',
+                context.l10n.trackPastRepair(
+                  repairSingularLabel(context.l10n, _showModifications),
+                ),
               ),
-              subtitle: const Text(
-                'Log something that has already been completed.',
-              ),
+              subtitle: Text(context.l10n.trackCompletedBody),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _openCreateEntry(context, planned: false);
@@ -244,7 +253,7 @@ class _PlannedRepairCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
-                              formatRepairUrgencyLabel(urgency),
+                              formatRepairUrgencyLabel(context.l10n, urgency),
                               style: Theme.of(context).textTheme.labelMedium
                                   ?.copyWith(
                                     color: repairUrgencyColor(urgency),
@@ -261,7 +270,7 @@ class _PlannedRepairCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          entry.area.label,
+                          entry.area.localizedLabel(context.l10n),
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: AppTheme.textSecondary),
                         ),
@@ -284,7 +293,11 @@ class _PlannedRepairCard extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               Text(
-                formatRepairTimestamp(entry),
+                formatRepairTimestamp(
+                  context.l10n,
+                  Localizations.localeOf(context).toLanguageTag(),
+                  entry,
+                ),
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
@@ -337,7 +350,7 @@ class _PastRepairCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            'Completed',
+                            context.l10n.completed,
                             style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
@@ -346,14 +359,18 @@ class _PastRepairCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      entry.area.label,
+                      entry.area.localizedLabel(context.l10n),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      formatRepairTimestamp(entry),
+                      formatRepairTimestamp(
+                        context.l10n,
+                        Localizations.localeOf(context).toLanguageTag(),
+                        entry,
+                      ),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.textSecondary,
                       ),
@@ -382,7 +399,10 @@ class _EmptyRepairState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final noun = repairCollectionLabel(modifications).toLowerCase();
+    final noun = repairCollectionLabel(
+      context.l10n,
+      modifications,
+    ).toLowerCase();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(28),
@@ -405,14 +425,14 @@ class _EmptyRepairState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'No $noun yet',
+              context.l10n.noRepairYet(noun),
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
             Text(
-              'Start by planning something upcoming or logging work that has already been finished.',
+              context.l10n.emptyRepairBody,
               textAlign: TextAlign.center,
               style: Theme.of(
                 context,
@@ -422,13 +442,21 @@ class _EmptyRepairState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onCreatePlanned,
               icon: const Icon(Icons.calendar_month_rounded),
-              label: Text('Plan ${repairSingularLabel(modifications)}'),
+              label: Text(
+                context.l10n.planRepair(
+                  repairSingularLabel(context.l10n, modifications),
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: onCreatePast,
               icon: const Icon(Icons.history_rounded),
-              label: Text('Track past ${repairSingularLabel(modifications)}'),
+              label: Text(
+                context.l10n.trackPastRepair(
+                  repairSingularLabel(context.l10n, modifications),
+                ),
+              ),
             ),
           ],
         ),

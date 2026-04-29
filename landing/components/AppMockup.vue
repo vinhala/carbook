@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { AlertTriangle, CheckCircle2, Gauge, Wrench } from 'lucide-vue-next'
-import { en } from '~/locales/en'
+
+const { t } = useI18n()
 </script>
 
 <template>
-  <div class="phone-visual" aria-label="Carful app preview">
+  <div class="phone-visual" :aria-label="t('landing.mockup.aria')">
     <div class="phone-header">
       <div>
-        <p class="phone-kicker">Active profile</p>
-        <h2>{{ en.landing.mockup.vehicle }}</h2>
-        <p>{{ en.landing.mockup.engine }}</p>
+        <p class="phone-kicker">{{ t('landing.mockup.activeProfile') }}</p>
+        <h2>{{ t('landing.mockup.vehicle') }}</h2>
+        <p>{{ t('landing.mockup.engine') }}</p>
       </div>
       <div class="avatar-plate" aria-hidden="true">328</div>
     </div>
@@ -17,15 +18,15 @@ import { en } from '~/locales/en'
     <div class="alert-card">
       <AlertTriangle :size="24" aria-hidden="true" />
       <div>
-        <strong>{{ en.landing.mockup.warning }}</strong>
-        <span>{{ en.landing.mockup.warningDetail }}</span>
+        <strong>{{ t('landing.mockup.warning') }}</strong>
+        <span>{{ t('landing.mockup.warningDetail') }}</span>
       </div>
     </div>
 
     <div class="metric-card">
       <div>
-        <span>{{ en.landing.mockup.health }}</span>
-        <strong>{{ en.landing.mockup.healthValue }}</strong>
+        <span>{{ t('landing.mockup.health') }}</span>
+        <strong>{{ t('landing.mockup.healthValue') }}</strong>
       </div>
       <div class="progress-ring" aria-hidden="true">
         <Gauge :size="28" />
@@ -38,8 +39,8 @@ import { en } from '~/locales/en'
           <Wrench :size="20" />
         </span>
         <div>
-          <strong>{{ en.landing.mockup.repairTitle }}</strong>
-          <span>{{ en.landing.mockup.repairMeta }}</span>
+          <strong>{{ t('landing.mockup.repairTitle') }}</strong>
+          <span>{{ t('landing.mockup.repairMeta') }}</span>
         </div>
       </div>
       <div class="work-item">
@@ -47,8 +48,8 @@ import { en } from '~/locales/en'
           <CheckCircle2 :size="20" />
         </span>
         <div>
-          <strong>{{ en.landing.mockup.logTitle }}</strong>
-          <span>{{ en.landing.mockup.logMeta }}</span>
+          <strong>{{ t('landing.mockup.logTitle') }}</strong>
+          <span>{{ t('landing.mockup.logMeta') }}</span>
         </div>
       </div>
     </div>

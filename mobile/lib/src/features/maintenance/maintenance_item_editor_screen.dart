@@ -4,6 +4,8 @@ import 'package:carful/src/domain/maintenance_schedule_type.dart';
 import 'package:carful/src/domain/maintenance_time_unit.dart';
 import 'package:carful/src/features/maintenance/maintenance_controller.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/l10n/generated/app_localizations.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,8 +54,8 @@ class _MaintenanceItemEditorScreenState
   @override
   Widget build(BuildContext context) {
     if (widget.carId == null || (_isEditing && widget.itemId == null)) {
-      return const Scaffold(
-        body: Center(child: Text('Invalid maintenance item.')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidMaintenanceItem)),
       );
     }
 
@@ -72,10 +74,8 @@ class _MaintenanceItemEditorScreenState
     return detailsAsync.when(
       data: (details) {
         if (_isEditing && details == null) {
-          return const Scaffold(
-            body: Center(
-              child: Text('This maintenance item could not be found.'),
-            ),
+          return Scaffold(
+            body: Center(child: Text(context.l10n.maintenanceItemNotFound)),
           );
         }
 
@@ -91,7 +91,9 @@ class _MaintenanceItemEditorScreenState
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Unable to load maintenance item.\n$error'),
+            child: Text(
+              context.l10n.unableToLoadMaintenanceItem(error.toString()),
+            ),
           ),
         ),
       ),
@@ -106,7 +108,9 @@ class _MaintenanceItemEditorScreenState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Edit Maintenance Item' : 'New Maintenance Item',
+          _isEditing
+              ? context.l10n.editMaintenanceItem
+              : context.l10n.newMaintenanceItem,
         ),
       ),
       body: SafeArea(
@@ -121,9 +125,9 @@ class _MaintenanceItemEditorScreenState
                   child: TextFormField(
                     controller: _descriptionController,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Description',
-                      hintText: 'Oil change',
+                    decoration: InputDecoration(
+                      labelText: context.l10n.description,
+                      hintText: context.l10n.oilChangeHint,
                     ),
                     validator: _requiredValidator,
                   ),
@@ -137,7 +141,7 @@ class _MaintenanceItemEditorScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Schedule Configurator',
+                        context.l10n.scheduleConfigurator,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -147,16 +151,16 @@ class _MaintenanceItemEditorScreenState
                         width: double.infinity,
                         child: SegmentedButton<MaintenanceScheduleType>(
                           expandedInsets: EdgeInsets.zero,
-                          segments: const [
+                          segments: [
                             ButtonSegment(
                               value: MaintenanceScheduleType.distance,
-                              label: Text('Distance'),
-                              icon: Icon(Icons.route_outlined),
+                              label: Text(context.l10n.distance),
+                              icon: const Icon(Icons.route_outlined),
                             ),
                             ButtonSegment(
                               value: MaintenanceScheduleType.time,
-                              label: Text('Time'),
-                              icon: Icon(Icons.schedule_rounded),
+                              label: Text(context.l10n.time),
+                              icon: const Icon(Icons.schedule_rounded),
                             ),
                           ],
                           selected: {_scheduleType},
@@ -176,8 +180,8 @@ class _MaintenanceItemEditorScreenState
                         decoration: InputDecoration(
                           labelText:
                               _scheduleType == MaintenanceScheduleType.distance
-                              ? 'Distance interval'
-                              : 'Time interval',
+                              ? context.l10n.distanceInterval
+                              : context.l10n.timeInterval,
                           suffixText:
                               _scheduleType == MaintenanceScheduleType.distance
                               ? mileageUnit
@@ -193,7 +197,9 @@ class _MaintenanceItemEditorScreenState
                               .map(
                                 (unit) => DropdownMenuItem(
                                   value: unit,
-                                  child: Text(unit.label),
+                                  child: Text(
+                                    unit.localizedLabel(context.l10n),
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -207,8 +213,8 @@ class _MaintenanceItemEditorScreenState
                                     _timeUnit = value;
                                   });
                                 },
-                          decoration: const InputDecoration(
-                            labelText: 'Time unit',
+                          decoration: InputDecoration(
+                            labelText: context.l10n.timeUnit,
                           ),
                         ),
                       ],
@@ -229,7 +235,7 @@ class _MaintenanceItemEditorScreenState
               onPressed: _isSaving ? null : () => _saveItem(details),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(_primaryActionLabel),
+                child: Text(_primaryActionLabel(context.l10n)),
               ),
             ),
             if (_isEditing) ...[
@@ -238,7 +244,7 @@ class _MaintenanceItemEditorScreenState
                 onPressed: _isSaving || details == null
                     ? null
                     : () => _deleteItem(details),
-                child: const Text('Delete Maintenance Item'),
+                child: Text(context.l10n.deleteMaintenanceItem),
               ),
             ],
           ],
@@ -247,13 +253,13 @@ class _MaintenanceItemEditorScreenState
     );
   }
 
-  String get _primaryActionLabel {
+  String _primaryActionLabel(AppLocalizations l10n) {
     if (_isEditing) {
-      return 'Save Changes';
+      return l10n.saveChanges;
     }
     return _scheduleType == MaintenanceScheduleType.distance
-        ? 'Create Item'
-        : 'Create Time-Based Item';
+        ? l10n.createItem
+        : l10n.createTimeBasedItem;
   }
 
   void _hydrate(MaintenanceItemDetails details) {
@@ -266,19 +272,19 @@ class _MaintenanceItemEditorScreenState
 
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'This field is required.';
+      return context.l10n.fieldRequired;
     }
     return null;
   }
 
   String? _intervalValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Interval is required.';
+      return context.l10n.intervalRequired;
     }
 
     final interval = int.tryParse(value);
     if (interval == null || interval <= 0) {
-      return 'Enter a valid interval.';
+      return context.l10n.enterValidInterval;
     }
 
     return null;
@@ -333,7 +339,11 @@ class _MaintenanceItemEditorScreenState
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to save maintenance item.\n$error')),
+        SnackBar(
+          content: Text(
+            context.l10n.unableToSaveMaintenanceItem(error.toString()),
+          ),
+        ),
       );
       setState(() => _isSaving = false);
     }
@@ -343,18 +353,16 @@ class _MaintenanceItemEditorScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete maintenance item?'),
-        content: const Text(
-          'This will remove the item and its logged service history.',
-        ),
+        title: Text(context.l10n.deleteMaintenanceItemTitle),
+        content: Text(context.l10n.deleteMaintenanceItemBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -376,7 +384,11 @@ class _MaintenanceItemEditorScreenState
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to delete maintenance item.\n$error')),
+        SnackBar(
+          content: Text(
+            context.l10n.unableToDeleteMaintenanceItem(error.toString()),
+          ),
+        ),
       );
       setState(() => _isSaving = false);
     }

@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:carful/src/data/local/app_database.dart';
 import 'package:carful/src/domain/ai_schedule_suggestion.dart';
 import 'package:carful/src/domain/assistant_message.dart';
@@ -59,6 +61,7 @@ class AiAssistantController {
   ) async {
     final context = await _loadContext(carId);
     return aiBackendService.generateMaintenanceSuggestions(
+      locale: _deviceLocale(),
       profile: context.profile,
       schedule: context.schedule,
       repairs: context.repairs,
@@ -101,6 +104,7 @@ class AiAssistantController {
     final conversationId = await assistantRepository.getConversationId(carId);
     final response = await aiBackendService.sendAssistantMessage(
       clientId: 'carful-$carId',
+      locale: _deviceLocale(),
       conversationId: conversationId,
       message: trimmed,
       profile: context.profile,
@@ -140,6 +144,9 @@ class AiAssistantController {
       manuals: manuals,
     );
   }
+
+  String _deviceLocale() =>
+      ui.PlatformDispatcher.instance.locale.toLanguageTag();
 
   Future<List<RepairEntry>> _loadRepairs(int carId) async {
     final repairs = await repairRepository

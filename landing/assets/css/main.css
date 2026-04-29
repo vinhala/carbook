@@ -118,9 +118,16 @@ p {
   justify-content: center;
   border: 1px solid rgba(59, 75, 57, 0.18);
   border-radius: 12px;
-  color: #f7fff1;
-  background: var(--primary);
+  overflow: hidden;
+  background: var(--surface-lowest);
   box-shadow: var(--shadow-soft);
+}
+
+.brand-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .desktop-nav,
@@ -146,7 +153,41 @@ p {
 }
 
 .desktop-actions {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 999px;
+  padding: 4px;
+  background: var(--surface-lowest);
+}
+
+.language-switcher a {
+  display: inline-flex;
+  min-width: 34px;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.language-switcher a.active {
+  color: #ffffff;
+  background: var(--primary);
+}
+
+.language-switcher--mobile {
+  justify-self: start;
 }
 
 .icon-button {
@@ -607,6 +648,12 @@ p {
 
 .footer-logo {
   font-size: 20px;
+}
+
+.footer-logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
 }
 
 .footer-brand p,

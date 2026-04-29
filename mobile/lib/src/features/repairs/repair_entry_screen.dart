@@ -5,6 +5,7 @@ import 'package:carful/src/domain/repair_attachment.dart';
 import 'package:carful/src/domain/repair_entry_details.dart';
 import 'package:carful/src/features/repairs/repair_controller.dart';
 import 'package:carful/src/features/repairs/repair_formatters.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,15 +20,17 @@ class RepairEntryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (entryId == null) {
-      return const Scaffold(body: Center(child: Text('Invalid repair entry.')));
+      return Scaffold(
+        body: Center(child: Text(context.l10n.invalidRepairEntry)),
+      );
     }
 
     final detailsAsync = ref.watch(repairEntryProvider(entryId!));
     return detailsAsync.when(
       data: (details) {
         if (details == null) {
-          return const Scaffold(
-            body: Center(child: Text('This repair entry could not be found.')),
+          return Scaffold(
+            body: Center(child: Text(context.l10n.repairEntryNotFound)),
           );
         }
 
@@ -39,7 +42,7 @@ class RepairEntryScreen extends ConsumerWidget {
             title: Text(details.entry.title),
             actions: [
               IconButton(
-                tooltip: 'Edit entry',
+                tooltip: context.l10n.editEntryTooltip,
                 onPressed: () => context.push(
                   '/cars/${details.entry.carProfileId}/repairs/${details.entry.id}/edit',
                 ),
@@ -83,17 +86,17 @@ class RepairEntryScreen extends ConsumerWidget {
                 ? FilledButton.icon(
                     onPressed: () => _confirmCompletion(context, ref, details),
                     icon: const Icon(Icons.check_circle_outline_rounded),
-                    label: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Text('Complete Repair'),
+                    label: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(context.l10n.completeRepair),
                     ),
                   )
                 : OutlinedButton.icon(
                     onPressed: () => _confirmReopen(context, ref, details),
                     icon: const Icon(Icons.refresh_rounded),
-                    label: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Text('Reopen Repair'),
+                    label: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(context.l10n.reopenRepair),
                     ),
                   ),
           ),
@@ -105,7 +108,9 @@ class RepairEntryScreen extends ConsumerWidget {
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text('Unable to load repair details.\n$error'),
+            child: Text(
+              context.l10n.unableToLoadRepairDetails(error.toString()),
+            ),
           ),
         ),
       ),
@@ -120,18 +125,16 @@ class RepairEntryScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mark as completed?'),
-        content: const Text(
-          'Carful will move this planned repair into your past repairs using the current date.',
-        ),
+        title: Text(context.l10n.markCompletedTitle),
+        content: Text(context.l10n.markCompletedBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Complete'),
+            child: Text(context.l10n.complete),
           ),
         ],
       ),
@@ -152,18 +155,16 @@ class RepairEntryScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reopen repair?'),
-        content: const Text(
-          'Carful will move this completed repair back into your planned list.',
-        ),
+        title: Text(context.l10n.reopenRepairTitle),
+        content: Text(context.l10n.reopenRepairBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reopen'),
+            child: Text(context.l10n.reopen),
           ),
         ],
       ),
@@ -181,9 +182,9 @@ class RepairEntryScreen extends ConsumerWidget {
     if (uri == null ||
         !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to open the link.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.l10n.unableToOpenLink)));
       }
     }
   }
@@ -195,7 +196,9 @@ class RepairEntryScreen extends ConsumerWidget {
     final result = await OpenFilex.open(attachment.storedPath);
     if (result.type != ResultType.done && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to open ${attachment.originalName}.')),
+        SnackBar(
+          content: Text(context.l10n.unableToOpenFile(attachment.originalName)),
+        ),
       );
     }
   }
@@ -219,11 +222,13 @@ class _RepairHeader extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _Badge(label: details.entry.area.label),
-                _Badge(label: repairTypeBadgeLabel(details.entry)),
+                _Badge(label: details.entry.area.localizedLabel(context.l10n)),
+                _Badge(
+                  label: repairTypeBadgeLabel(context.l10n, details.entry),
+                ),
                 if (urgency != null && !details.entry.isModification)
                   _Badge(
-                    label: formatRepairUrgencyLabel(urgency),
+                    label: formatRepairUrgencyLabel(context.l10n, urgency),
                     background: repairUrgencyBackground(urgency),
                     foreground: repairUrgencyColor(urgency),
                   ),
@@ -250,7 +255,11 @@ class _RepairHeader extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    formatRepairTimestamp(details.entry),
+                    formatRepairTimestamp(
+                      context.l10n,
+                      Localizations.localeOf(context).toLanguageTag(),
+                      details.entry,
+                    ),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppTheme.textSecondary,
                     ),
@@ -279,7 +288,7 @@ class _DescriptionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Description',
+              context.l10n.descriptionSection,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -314,7 +323,7 @@ class _PartsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Parts',
+              context.l10n.parts,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -353,7 +362,7 @@ class _PartsCard extends StatelessWidget {
                             InkWell(
                               onTap: () => onOpenLink(part.link!),
                               child: Text(
-                                'View part',
+                                context.l10n.viewPart,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       color: AppTheme.primary,
@@ -391,7 +400,7 @@ class _GalleryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Gallery',
+              context.l10n.gallery,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -450,7 +459,7 @@ class _DocumentsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Files',
+              context.l10n.files,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -471,7 +480,7 @@ class _DocumentsCard extends StatelessWidget {
                 ),
                 title: Text(attachment.originalName),
                 subtitle: Text(
-                  attachment.fileExtension?.toUpperCase() ?? 'FILE',
+                  attachment.fileExtension?.toUpperCase() ?? context.l10n.file,
                 ),
                 trailing: const Icon(Icons.open_in_new_rounded),
               ),

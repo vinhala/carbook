@@ -12,6 +12,7 @@ import 'package:carful/src/domain/workshop_manual_repository.dart';
 import 'package:carful/src/features/maintenance/maintenance_controller.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
 import 'package:carful/src/features/repairs/repair_controller.dart';
+import 'package:carful/src/l10n/generated/app_localizations.dart';
 import 'package:carful/src/services/ai_backend_service.dart';
 import 'package:carful/src/services/media_service.dart';
 import 'package:carful/src/services/reminder_scheduler.dart';
@@ -32,6 +33,7 @@ ProviderScope buildTestApp({
   required MediaService mediaService,
   required ReminderScheduler reminderScheduler,
   bool allowRuntimeFontFetching = false,
+  Locale? locale,
 }) {
   GoogleFonts.config.allowRuntimeFetching = allowRuntimeFontFetching;
   final router = AppRouter.createRouter();
@@ -90,6 +92,9 @@ ProviderScope buildTestApp({
     child: MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      locale: locale ?? const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
     ),
   );

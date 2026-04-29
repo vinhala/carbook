@@ -7,7 +7,6 @@ import 'package:carful/src/domain/assistant_message.dart';
 import 'package:carful/src/domain/car_profile_input.dart';
 import 'package:carful/src/domain/mileage_reminder_frequency.dart';
 import 'package:carful/src/domain/workshop_manual_input.dart';
-import 'package:carful/src/services/ai_backend_service.dart';
 import 'package:carful/src/services/media_service.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';

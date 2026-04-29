@@ -54,6 +54,7 @@ abstract class AiBackendService {
   Future<BackendManualUploadResult> uploadManual(CarProfile profile, File file);
   Future<void> deleteManual(CarProfile profile, String backendManualId);
   Future<List<AiScheduleSuggestion>> generateMaintenanceSuggestions({
+    required String locale,
     required CarProfile profile,
     required List<MaintenanceScheduleEntry> schedule,
     required List<RepairEntry> repairs,
@@ -61,6 +62,7 @@ abstract class AiBackendService {
   });
   Future<AssistantBackendResponse> sendAssistantMessage({
     required String clientId,
+    required String locale,
     required String? conversationId,
     required String message,
     required CarProfile profile,
@@ -140,6 +142,7 @@ class HttpAiBackendService implements AiBackendService {
 
   @override
   Future<List<AiScheduleSuggestion>> generateMaintenanceSuggestions({
+    required String locale,
     required CarProfile profile,
     required List<MaintenanceScheduleEntry> schedule,
     required List<RepairEntry> repairs,
@@ -151,6 +154,7 @@ class HttpAiBackendService implements AiBackendService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'profile': _profileJson(profile),
+        'locale': locale,
         'existing_items': schedule.map(_scheduleItemJson).toList(),
         'repairs': repairs.map(_repairJson).toList(),
         'manuals': manuals.map(_manualJson).toList(),
@@ -179,6 +183,7 @@ class HttpAiBackendService implements AiBackendService {
   @override
   Future<AssistantBackendResponse> sendAssistantMessage({
     required String clientId,
+    required String locale,
     required String? conversationId,
     required String message,
     required CarProfile profile,
@@ -192,6 +197,7 @@ class HttpAiBackendService implements AiBackendService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'client_id': clientId,
+        'locale': locale,
         'conversation_id': conversationId,
         'message': message,
         'profile': _profileJson(profile),

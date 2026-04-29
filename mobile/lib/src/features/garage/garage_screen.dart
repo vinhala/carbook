@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:carful/src/core/theme/app_theme.dart';
 import 'package:carful/src/domain/car_profile.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,13 +15,14 @@ class GarageScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profilesAsync = ref.watch(garageProfilesProvider);
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Carful')),
+      appBar: AppBar(title: Text(l10n.appTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/cars/new'),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add car'),
+        label: Text(l10n.addCar),
       ),
       body: SafeArea(
         child: profilesAsync.when(
@@ -48,7 +50,7 @@ class GarageScreen extends ConsumerWidget {
           error: (error, stackTrace) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load your garage.\n$error'),
+              child: Text(l10n.unableToLoadGarage(error.toString())),
             ),
           ),
         ),
@@ -90,7 +92,7 @@ class _GarageEmptyState extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Your garage is ready',
+                  context.l10n.garageEmptyTitle,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -98,7 +100,7 @@ class _GarageEmptyState extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Create your first car profile to start tracking mileage and reminders.',
+                  context.l10n.garageEmptyBody,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
@@ -108,7 +110,7 @@ class _GarageEmptyState extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: onCreateProfile,
                   icon: const Icon(Icons.add_circle_outline_rounded),
-                  label: const Text('Create your first profile'),
+                  label: Text(context.l10n.createFirstProfile),
                 ),
               ],
             ),
@@ -127,12 +129,14 @@ class _GarageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final registration = DateFormat.yMMM().format(
-      profile.firstRegistrationMonth,
-    );
-    final mileage = NumberFormat.decimalPattern().format(
-      profile.currentMileage,
-    );
+    final l10n = context.l10n;
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+    final registration = DateFormat.yMMM(
+      localeName,
+    ).format(profile.firstRegistrationMonth);
+    final mileage = NumberFormat.decimalPattern(
+      localeName,
+    ).format(profile.currentMileage);
     final imageProvider =
         profile.photoPath != null && File(profile.photoPath!).existsSync()
         ? FileImage(File(profile.photoPath!))
@@ -146,6 +150,7 @@ class _GarageCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
+              width: double.infinity,
               height: 180,
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.vertical(
@@ -198,7 +203,7 @@ class _GarageCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          profile.reminderFrequency.label,
+                          profile.reminderFrequency.localizedLabel(l10n),
                           style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),

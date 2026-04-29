@@ -5,6 +5,7 @@ import 'package:carful/src/domain/car_profile.dart';
 import 'package:carful/src/domain/car_profile_input.dart';
 import 'package:carful/src/domain/mileage_reminder_frequency.dart';
 import 'package:carful/src/features/profile/car_profile_controller.dart';
+import 'package:carful/src/l10n/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,16 +28,16 @@ class CarProfileEditorScreen extends ConsumerWidget {
     return profileAsync.when(
       data: (profile) {
         if (profile == null) {
-          return const _NotFoundScaffold(
-            message: 'This car profile could not be found.',
-          );
+          return _NotFoundScaffold(message: context.l10n.carProfileNotFound);
         }
         return _CarProfileEditor(initialProfile: profile);
       },
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, stackTrace) => Scaffold(
-        body: Center(child: Text('Unable to load the car profile.\n$error')),
+        body: Center(
+          child: Text(context.l10n.unableToLoadCarProfile(error.toString())),
+        ),
       ),
     );
   }
@@ -99,18 +100,20 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final localeName = Localizations.localeOf(context).toLanguageTag();
     final controller = ref.watch(carProfileControllerProvider);
-    final formattedRegistration = DateFormat.yMMMM().format(
-      _firstRegistrationMonth,
-    );
+    final formattedRegistration = DateFormat.yMMMM(
+      localeName,
+    ).format(_firstRegistrationMonth);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Profile' : 'Add New Car'),
+        title: Text(_isEditing ? l10n.editProfile : l10n.addNewCar),
         leading: _isEditing
             ? null
             : IconButton(
-                tooltip: 'Back to garage',
+                tooltip: l10n.backToGarage,
                 onPressed: _isSaving
                     ? null
                     : () {
@@ -160,17 +163,17 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                   child: Stack(
                     children: [
                       if (_photoPath == null)
-                        const Center(
+                        Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.add_a_photo_outlined,
                                 size: 48,
                                 color: AppTheme.tertiary,
                               ),
-                              SizedBox(height: 12),
-                              Text('Tap to add a car photo'),
+                              const SizedBox(height: 12),
+                              Text(l10n.tapToAddCarPhoto),
                             ],
                           ),
                         ),
@@ -208,28 +211,28 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                       TextFormField(
                         controller: _makeController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(labelText: 'Make'),
+                        decoration: InputDecoration(labelText: l10n.make),
                         validator: _requiredValidator,
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _modelController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(labelText: 'Model'),
+                        decoration: InputDecoration(labelText: l10n.model),
                         validator: _requiredValidator,
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _engineController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(labelText: 'Engine'),
+                        decoration: InputDecoration(labelText: l10n.engine),
                         validator: _requiredValidator,
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _vinController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(labelText: 'VIN'),
+                        decoration: InputDecoration(labelText: l10n.vin),
                         validator: _requiredValidator,
                       ),
                       const SizedBox(height: 14),
@@ -237,8 +240,8 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                         onTap: _isSaving ? null : _pickRegistrationMonth,
                         borderRadius: BorderRadius.circular(18),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'First registration',
+                          decoration: InputDecoration(
+                            labelText: l10n.firstRegistration,
                           ),
                           child: Row(
                             children: [
@@ -251,9 +254,12 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                       ),
                       const SizedBox(height: 14),
                       SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'mi', label: Text('Miles')),
-                          ButtonSegment(value: 'km', label: Text('Kilometers')),
+                        segments: [
+                          ButtonSegment(value: 'mi', label: Text(l10n.miles)),
+                          ButtonSegment(
+                            value: 'km',
+                            label: Text(l10n.kilometers),
+                          ),
                         ],
                         selected: {_mileageUnit},
                         onSelectionChanged: _isSaving
@@ -267,7 +273,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                         controller: _mileageController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Current mileage',
+                          labelText: l10n.currentMileage,
                           suffixText: _mileageUnit,
                         ),
                         validator: _mileageValidator,
@@ -284,14 +290,14 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Mileage reminders',
+                        l10n.mileageReminders,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Choose how often Carful should remind you to update mileage for this car.',
+                        l10n.mileageReminderHelp,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppTheme.textSecondary,
                         ),
@@ -303,7 +309,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                         children: MileageReminderFrequency.values
                             .map(
                               (frequency) => ChoiceChip(
-                                label: Text(frequency.label),
+                                label: Text(frequency.localizedLabel(l10n)),
                                 selected: frequency == _reminderFrequency,
                                 onSelected: _isSaving
                                     ? null
@@ -335,8 +341,8 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                         Expanded(
                           child: Text(
                             _reminderFrequency == MileageReminderFrequency.never
-                                ? 'Turning reminders off can make it easier to miss critical maintenance intervals.'
-                                : 'Quarterly reminders can be too sparse for cars that need close attention.',
+                                ? l10n.reminderOffWarning
+                                : l10n.quarterlyReminderWarning,
                             style: theme.textTheme.bodyMedium,
                           ),
                         ),
@@ -355,7 +361,9 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                       ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(_isEditing ? 'Save Changes' : 'Create Profile'),
+                  child: Text(
+                    _isEditing ? l10n.saveChanges : l10n.createProfile,
+                  ),
                 ),
               ),
               if (_isEditing) ...[
@@ -368,7 +376,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
                           controller: controller,
                         ),
                   icon: const Icon(Icons.delete_outline_rounded),
-                  label: const Text('Delete Profile'),
+                  label: Text(l10n.deleteProfile),
                 ),
               ],
             ],
@@ -380,18 +388,18 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
 
   String? _requiredValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'This field is required.';
+      return context.l10n.fieldRequired;
     }
     return null;
   }
 
   String? _mileageValidator(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Mileage is required.';
+      return context.l10n.mileageRequired;
     }
     final mileage = int.tryParse(value);
     if (mileage == null || mileage < 0) {
-      return 'Mileage must be a positive whole number.';
+      return context.l10n.mileagePositiveWholeNumber;
     }
     return null;
   }
@@ -410,7 +418,7 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
       initialDate: _firstRegistrationMonth,
       firstDate: DateTime(1950),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      helpText: 'Select first registration month',
+      helpText: context.l10n.selectFirstRegistrationMonth,
     );
     if (pickedDate != null) {
       setState(() {
@@ -468,7 +476,9 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to save this car profile.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToSaveCarProfile(error.toString())),
+        ),
       );
     } finally {
       if (mounted) {
@@ -485,18 +495,16 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete this profile?'),
-        content: const Text(
-          'This removes the car profile and its mileage reminder schedule. This cannot be undone.',
-        ),
+        title: Text(context.l10n.deleteProfileTitle),
+        content: Text(context.l10n.deleteProfileBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.delete),
           ),
         ],
       ),
@@ -518,7 +526,9 @@ class _CarProfileEditorState extends ConsumerState<_CarProfileEditor> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to delete this profile.\n$error')),
+        SnackBar(
+          content: Text(context.l10n.unableToDeleteProfile(error.toString())),
+        ),
       );
       setState(() => _isSaving = false);
     }

@@ -101,6 +101,7 @@ class FakeAiBackendService implements AiBackendService {
 
   @override
   Future<List<AiScheduleSuggestion>> generateMaintenanceSuggestions({
+    required String locale,
     required CarProfile profile,
     required List<MaintenanceScheduleEntry> schedule,
     required List<RepairEntry> repairs,
@@ -112,6 +113,7 @@ class FakeAiBackendService implements AiBackendService {
   @override
   Future<AssistantBackendResponse> sendAssistantMessage({
     required String clientId,
+    required String locale,
     required String? conversationId,
     required String message,
     required CarProfile profile,
